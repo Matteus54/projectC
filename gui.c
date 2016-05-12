@@ -12,6 +12,9 @@ void try_login() {
 
 }
 
+/*
+  Fonction qui permet de creer un utilisateur dans la BDD
+*/
 void create_user(GtkWidget* widget, gpointer* data) {
   UNUSED(widget);
   user_entry_t* user_data = (user_entry_t*)data;
@@ -25,10 +28,17 @@ void create_user(GtkWidget* widget, gpointer* data) {
 
   if(strlen(login_text) >= 6 && strlen(login_text) <= 30 && strlen(password_text) >= 6 && strlen(password_text) <= 30) {
     if(strcmp(password_text, password_check_text) == 0) {
+
+      //on recupere le hash du password et on le met dans un buffer pour le passer en String pour la concatenation
+      int password_hash = hash(password_text);
+      char buffer[8];
+      sprintf(buffer, "%d", password_hash);
+
+      //on cree la requete
       char request[1024] = "INSERT INTO utilisateur VALUES ('";
       strcat(request, login_text);
       strcat(request, "', '");
-      strcat(request, password_text);
+      strcat(request, buffer);
       strcat(request, "');");
       bdd_execute(request);
     }
@@ -64,6 +74,11 @@ void create_user(GtkWidget* widget, gpointer* data) {
 
 }
 
+/*
+  Quand lutilisateur appuie sur "Create new user" a la page login, la fonction create_user_form est appelee
+  Elle creer une fenetre externe qui propose un champ login, un mdp et un check.
+  Quand lutilisateur submit ses donnees, elle appelle la fonction "create_user" qui valide laction
+*/
 void create_user_form() {
   GtkWidget *window;
   GtkWidget *login_field, *password_field, *password_2_field;
@@ -105,7 +120,9 @@ void create_user_form() {
   gtk_widget_show_all(window);
 }
 
-
+/*
+  Donne a lapplication la fenetre window qui propose soit de se logger, soit de creer un nouvel utilisateur
+*/
 void login_page(GtkApplication *app) {
   GtkWidget *window;
   window = gtk_application_window_new(app);
@@ -148,7 +165,11 @@ void login_page(GtkApplication *app) {
 }
 
 
-
+/*
+  Fonction qui initialise l'interface graphique de l'application
+  Celle ci creer une application, et lui initialise certaines donnees (comme la fermeture lors de lappui sur la croix)
+  Elle appelle ensuite la fonction "login_page" en premier
+*/
 int gui_init(int argc, char **argv) {
   /* Initialisation de GTK+ */
   gtk_init(&argc, &argv);
