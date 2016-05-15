@@ -8,6 +8,7 @@ static sqlite3 *db;
 static char *zErrMsg = 0;
 static int rc;
 static char* request;
+const unsigned char* login;
 
 //Constante qui sert a definir la taille max du hashing
 const int MUST_BE_LESS_THAN = 100000000; // 8 decimal digits max
@@ -33,6 +34,31 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   }
   printf("\n");
   return 0;
+}
+
+
+int bdd_login(char* request) {
+  sqlite3_stmt *stmt;
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      const unsigned char* text;
+      text = sqlite3_column_text(stmt,0);
+      printf("login with: %s\n", text);
+      login = text;
+      sqlite3_finalize(stmt);
+      return 1;
+    }
+    else{
+      printf("Can't able to log, login or password incorrect\n");
+      sqlite3_finalize(stmt);
+      return 0;
+    }
+  }
+  else {
+    printf("SQL ERROR LOGIN\n");
+    return 0;
+  }
 }
 
 //Fonction qui permet dexecuter une requete SQL en parametre
