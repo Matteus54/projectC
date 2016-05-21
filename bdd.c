@@ -103,6 +103,9 @@ void bdd_init() {
   request = "CREATE TABLE IF NOT EXISTS livret_type (id VARCHAR2(5) PRIMARY KEY, libelle VARCHAR2(30));";
   bdd_execute(request);
 
+  request = "INSERT INTO livret_type VALUES ('A', 'Livret A');";
+  bdd_execute(request);
+
   request = "CREATE TABLE IF NOT EXISTS livret (id VARCHAR2(30) PRIMARY KEY, "\
           "plafond INT(10) NOT NULL, interet NUMBER(4,2) NOT NULL, type VARCHAR2(5) NOT NULL,"\
           "CONSTRAINT livret_id_fk FOREIGN KEY (id) REFERENCES compte(id)"\
