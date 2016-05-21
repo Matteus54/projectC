@@ -67,11 +67,11 @@ int bdd_execute(char *sql) {
   if( rc != SQLITE_OK) {
     fprintf(stderr, "SQL ERROR: %s\n", zErrMsg);
     sqlite3_free(zErrMsg);
-    return 1;
+    return 0;
   }
   else {
     fprintf(stdout, "Records created successfully\n");
-    return 0;
+    return 1;
   }
 }
 
@@ -95,4 +95,5 @@ void bdd_init() {
 
   request = "CREATE TABLE IF NOT EXISTS utilisateur (login VARCHAR2(30) PRIMARY KEY, password INT(8) NOT NULL);";
   bdd_execute(request);
+
 }

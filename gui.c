@@ -27,8 +27,17 @@ void close_window(GtkWidget *widget, gpointer window) {
 }
 
 
-void show_compte () {
+void show_compte (GtkWidget *widget, gpointer* data) {
+  UNUSED(widget);
+  UNUSED(data);
+  GtkWidget *windowCompte;
 
+  windowCompte = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(windowCompte), "Compte");
+  gtk_window_set_default_size(GTK_WINDOW(windowCompte), 800,600);
+  gtk_window_set_position(GTK_WINDOW(windowCompte), GTK_WIN_POS_CENTER);
+
+  gtk_widget_show_all(windowCompte);
 }
 
 void show_transaction() {
@@ -81,6 +90,20 @@ void try_login(GtkWidget* widget, gpointer* data) {
 
     gtk_widget_show_all(window);
   }
+  else {
+    GtkWidget *windowAlert;
+    windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
+
+    GtkWidget *textAlert;
+    textAlert = gtk_label_new("Can't able to log, login or password incorrect");
+
+    gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
+    gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
+    gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
+
+    gtk_widget_show_all(windowAlert);
+  }
 }
 
 /*
@@ -111,7 +134,34 @@ void create_user(GtkWidget* widget, gpointer* data) {
       strcat(request, "', '");
       strcat(request, buffer);
       strcat(request, "');");
-      bdd_execute(request);
+      if(bdd_execute(request)) {
+        GtkWidget *windowAlert;
+        windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
+
+        GtkWidget *textAlert;
+        textAlert = gtk_label_new("Utilisateur bien enregistré !");
+
+        gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
+        gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
+        gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
+
+        gtk_widget_show_all(windowAlert);
+      }
+      else {
+        GtkWidget *windowAlert;
+        windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
+
+        GtkWidget *textAlert;
+        textAlert = gtk_label_new("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
+
+        gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
+        gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
+        gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
+
+        gtk_widget_show_all(windowAlert);
+      }
     }
     else {
       GtkWidget *windowAlert;
