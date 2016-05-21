@@ -96,4 +96,27 @@ void bdd_init() {
   request = "CREATE TABLE IF NOT EXISTS utilisateur (login VARCHAR2(30) PRIMARY KEY, password INT(8) NOT NULL);";
   bdd_execute(request);
 
+  request = "CREATE TABLE IF NOT EXISTS compte (id VARCHAR2(30) PRIMARY KEY, solde INT(10) NOT NULL,"\
+          "libelle VARCHAR2(255), booleanLivret BOOLEAN, login VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (login) REFERENCES utilisateur(login));";
+  bdd_execute(request);
+
+  request = "CREATE TABLE IF NOT EXISTS livret_type (id VARCHAR2(5) PRIMARY KEY, libelle VARCHAR2(30));";
+  bdd_execute(request);
+
+  request = "CREATE TABLE IF NOT EXISTS livret (id VARCHAR2(30) PRIMARY KEY, "\
+          "plafond INT(10) NOT NULL, interet NUMBER(4,2) NOT NULL, type VARCHAR2(5) NOT NULL,"\
+          "CONSTRAINT livret_id_fk FOREIGN KEY (id) REFERENCES compte(id)"\
+          "CONSTRAINT livret_type_fk FOREIGN KEY (type) REFERENCES livret_type(id));";
+  bdd_execute(request);
+
+  request = "CREATE TABLE IF NOT EXISTS typeTransaction (id VARCHAR2(10) PRIMARY KEY, libelle VARCHAR2(255) NOT NULL)";
+  bdd_execute(request);
+
+  request = "CREATE TABLE IF NOT EXISTS transactionCompte (id VARCHAR2(30) PRIMARY KEY, montant INT(10) NOT NULL,"\
+          "date DATE NOT NULL, commentaire VARCHAR2(255), type VARCHAR2(10) NOT NULL, compte_id VARCHAR2(30) NOT NULL,"\
+          "CONSTRAINT transaction_compte_fk FOREIGN KEY (compte_id) REFERENCES compte(id),"\
+          "CONSTRAINT transaction_type_fk FOREIGN KEY (type) REFERENCES typeTransaction(id));";
+  bdd_execute(request);
+
+
 }
