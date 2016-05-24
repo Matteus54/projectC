@@ -12,12 +12,13 @@ ERROR_CFLAGS = -Wall -W -pedantic
 
 LDFLAGS = $(ERROR_CFLAGS) 
 CFLAGS = $(ERROR_CFLAGS) $(GTK_CFLAGS)
+LIBS = $(SQLITE_FLAGS) $(GTK_LDFLAGS) 
 
 all: $(EXEC)
 
 $(EXEC): $(SRC)
 	$(CC) $(CFLAGS) -c $(SRC)
-	$(CC) $(LDFLAGS) -o $(EXEC) $(OBJ) $(SQLITE_FLAGS) $(GTK_LDFLAGS) 
+	$(CC) $(LDFLAGS) -o $(EXEC) $(OBJ) $(LIBS)
 
 
 clean:
