@@ -47,15 +47,25 @@ void create_account_form() {
 
   g_signal_connect(GTK_BUTTON(booleanLivret), "clicked", G_CALLBACK(show_hide_button_box), livretVbox);
 
-  GtkWidget *plafond, *interet, *type;
+  GtkWidget *plafond, *interet, *type_livret_list;
   plafond = gtk_entry_new();
   interet = gtk_entry_new();
+  type_livret_list = gtk_combo_box_text_new();
+
+  char **listType = bdd_get_type_livret();
+
+  while(*listType != NULL) {
+    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(type_livret_list),NULL,*listType);
+    listType++;
+  }
+
   //liste déroulante du type
   gtk_box_pack_start(GTK_BOX(livretVbox), gtk_label_new("plafond"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(livretVbox), plafond, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(livretVbox), gtk_label_new("interet"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(livretVbox), interet, 0, 0, 0);
-
+  gtk_box_pack_start(GTK_BOX(livretVbox), gtk_label_new("type de livret"), 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(livretVbox), type_livret_list, 0, 0, 0);
   /* FIN LIVRET FORM */
 
 

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
+#include <string.h>
 
 #define UNUSED(p) ((void)(p))
 
@@ -34,6 +35,37 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   }
   printf("\n");
   return 0;
+}
+
+char **bdd_get_type_livret() {
+  char **listText = (char **) calloc (30,sizeof(char*));
+  char *text;
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char *request = "SELECT type_livret FROM livret_type;";
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW) {
+        text = sqlite3_column_text(stmt,0);
+        listText[i] = (char *)calloc(strlen(text)+2,sizeof(char));
+        memcpy(listText[i], text, strlen(text));
+        memset(text, 0, strlen(text));
+        i++;
+        res_stmt = sqlite3_step(stmt);
+      }
+      return listText;
+    }
+    else {
+      printf("Can't able to get type of livret\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+  }
+  else {
+      printf("SQL ERROR LOGIN\n");
+      return NULL;
+  }
 }
 
 
@@ -96,29 +128,31 @@ void bdd_init() {
   request = "CREATE TABLE IF NOT EXISTS utilisateur (login VARCHAR2(30) PRIMARY KEY, password INT(8) NOT NULL);";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS compte (id VARCHAR2(30) PRIMARY KEY, solde INT(10) NOT NULL,"\
-          "libelle VARCHAR2(255), booleanLivret BOOLEAN, login VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (login) REFERENCES utilisateur(login));";
+  request = "CREATE TABLE IF NOT EXISTS compte (iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34), solde NUMBER(12,2) NOT NULL,"\
+          "libelle VARCHAR2(255), booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS livret_type (id VARCHAR2(5) PRIMARY KEY, libelle VARCHAR2(30));";
+  request = "CREATE TABLE IF NOT EXISTS livret_type (type_livret VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255));";
   bdd_execute(request);
 
-  request = "INSERT INTO livret_type VALUES ('A', 'Livret A');";
+  request = "INSERT OR IGNORE INTO livret_type VALUES ('A', 'Livret A');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO livret_type VALUES ('Jeune', 'Livret A');";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS livret (id VARCHAR2(30) PRIMARY KEY, "\
-          "plafond INT(10) NOT NULL, interet NUMBER(4,2) NOT NULL, type VARCHAR2(5) NOT NULL,"\
-          "CONSTRAINT livret_id_fk FOREIGN KEY (id) REFERENCES compte(id)"\
-          "CONSTRAINT livret_type_fk FOREIGN KEY (type) REFERENCES livret_type(id));";
+  request = "CREATE TABLE IF NOT EXISTS livret (iban VARCHAR2(34) PRIMARY KEY, "\
+          "plafond NUMBER(12,2) NOT NULL, interet NUMBER(3,2) NOT NULL, type VARCHAR2(255) NOT NULL,"\
+          "CONSTRAINT livret_id_fk FOREIGN KEY (iban) REFERENCES compte(iban)"\
+          "CONSTRAINT livret_type_fk FOREIGN KEY (type) REFERENCES livret_type(type_livret));";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS typeTransaction (id VARCHAR2(10) PRIMARY KEY, libelle VARCHAR2(255) NOT NULL)";
+  request = "CREATE TABLE IF NOT EXISTS typeTransaction (type_trans VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255) NOT NULL)";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS transactionCompte (id VARCHAR2(30) PRIMARY KEY, montant INT(10) NOT NULL,"\
-          "date DATE NOT NULL, commentaire VARCHAR2(255), type VARCHAR2(10) NOT NULL, compte_id VARCHAR2(30) NOT NULL,"\
-          "CONSTRAINT transaction_compte_fk FOREIGN KEY (compte_id) REFERENCES compte(id),"\
-          "CONSTRAINT transaction_type_fk FOREIGN KEY (type) REFERENCES typeTransaction(id));";
+  request = "CREATE TABLE IF NOT EXISTS transactionCompte (id_transaction INTEGER PRIMARY KEY AUTOINCREMENT, libelle VARCHAR2(255) NOT NULL, montant NUMBER(12,2) NOT NULL,"\
+          "negatif BOOLEAN NOT NULL, commission NUMBER (6,2) NOT NULL DEFAULT '0', date DATE NOT NULL, commentaire VARCHAR2(255), type VARCHAR2(255) NOT NULL, compte_iban VARCHAR2(34) NOT NULL,"\
+          "CONSTRAINT transaction_compte_fk FOREIGN KEY (compte_iban) REFERENCES compte(iban),"\
+          "CONSTRAINT transaction_type_fk FOREIGN KEY (type) REFERENCES typeTransaction(type_trans));";
   bdd_execute(request);
 
 
