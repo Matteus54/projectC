@@ -18,7 +18,8 @@ const int MUST_BE_LESS_THAN = 100000000; // 8 decimal digits max
 //Fonction qui hash un String et renvoi son entier sur MUST_BE_LESS_THAN digits max
 int hash (const char* word) {
     unsigned int hash = 0;
-    for (int i = 0 ; word[i] != '\0' ; i++)
+    int i;
+    for (i = 0 ; word[i] != '\0' ; i++)
     {
         hash = 31*hash + word[i];
     }

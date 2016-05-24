@@ -10,14 +10,14 @@ SQLITE_FLAGS = -lsqlite3
 
 ERROR_CFLAGS = -Wall -W -pedantic
 
-LDFLAGS = $(GTK_LDFLAGS) $(ERROR_CFLAGS) $(SQLITE_FLAGS)
+LDFLAGS = $(ERROR_CFLAGS) 
 CFLAGS = $(ERROR_CFLAGS) $(GTK_CFLAGS)
 
 all: $(EXEC)
 
 $(EXEC): $(SRC)
 	$(CC) $(CFLAGS) -c $(SRC)
-	$(CC) $(LDFLAGS) -o $(EXEC) $(OBJ)
+	$(CC) $(LDFLAGS) -o $(EXEC) $(OBJ) $(SQLITE_FLAGS) $(GTK_LDFLAGS) 
 
 
 clean:
