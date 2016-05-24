@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <gtk/gtk.h>
 #include "gui.h"
@@ -37,7 +36,9 @@ void try_login(GtkWidget* widget, gpointer* data) {
   strcat(request, buffer);
   strcat(request, "';");
   if(bdd_login(request)) {
-
+    
+    // il faut mettre tout ce code dans une autre fonction,la page d'accueil
+    
     clean_window();
 
     GtkWidget *button_compte, *button_transaction, *button_exit;
@@ -68,7 +69,7 @@ void try_login(GtkWidget* widget, gpointer* data) {
     gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
 
     GtkWidget *textAlert;
-    textAlert = gtk_label_new("Can't able to log, login or password incorrect");
+    textAlert = gtk_label_new("Unable to login, login or password incorrect");
 
     gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
     gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);

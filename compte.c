@@ -1,14 +1,9 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <gtk/gtk.h>
 #include "gui.h"
 #include "user_entries_structs.h"
-#include "create_user.h"
-#include "login.h"
 #include "compte.h"
 #include "bdd.h"
-
 
 void create_account() {
 
