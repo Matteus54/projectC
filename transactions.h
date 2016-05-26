@@ -1,3 +1,3 @@
+#include <gtk/gtk.h>
 
-
-void show_transaction();
+void transaction_window(GtkWidget *widget, gpointer* data);

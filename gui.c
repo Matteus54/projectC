@@ -13,7 +13,6 @@
 GtkApplication *app;
 GtkWidget *window;
 GtkWidget *grid;
-int result = 1;
 
 void widget_set_margins(GtkWidget *widget, int top, int bottom, int left, int right) {
   gtk_widget_set_margin_top(widget, top);
@@ -47,6 +46,36 @@ void clean_window() {
 void close_window(GtkWidget *widget, gpointer window) {
   UNUSED(widget);
   gtk_widget_destroy(GTK_WIDGET(window));
+}
+
+char* file_browser() {
+  GtkWidget *dialog;
+  GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+  gint res;
+  char *filename = "";
+
+  dialog = gtk_file_chooser_dialog_new ("Open File",
+                                        GTK_WINDOW(window),
+                                        action,
+                                        ("Cancel"),
+                                        GTK_RESPONSE_CANCEL,
+                                        ("Open"),
+                                        GTK_RESPONSE_ACCEPT,
+                                        NULL);
+
+  res = gtk_dialog_run (GTK_DIALOG (dialog));
+  if (res == GTK_RESPONSE_ACCEPT)
+    {
+      GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+      filename = gtk_file_chooser_get_filename (chooser);
+
+      printf("path to selected file : %s\n", filename);
+      //open_file (filename);
+      //g_free (filename);
+    }
+
+  gtk_widget_destroy (dialog);
+  return(filename);
 }
 
 void alert_dialog(gchar *text) {
@@ -89,7 +118,7 @@ void main_window() {
   gtk_grid_attach(GTK_GRID(grid), button_compte, 0,0,1,1);
 
   button_transaction = gtk_button_new_with_label("Transaction");
-  g_signal_connect(button_transaction, "clicked", G_CALLBACK(show_transaction), NULL);
+  g_signal_connect(button_transaction, "clicked", G_CALLBACK(transaction_window), NULL);
 
   gtk_grid_attach(GTK_GRID(grid), button_transaction, 1,0,1,1);
 
