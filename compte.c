@@ -6,6 +6,8 @@
 #include "compte.h"
 #include "bdd.h"
 
+extern const char* login;
+
 
 int isNumeric(const char *string, int isDecimal) {
   int virgulePresente = 0;
@@ -67,12 +69,47 @@ void create_account(GtkWidget* widget, gpointer* data) {
           const char *interet_text = gtk_entry_get_text(GTK_ENTRY(interet));
           const char *type_livret_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(type_livret));
 
+          printf("type livret: %s\n", type_livret_text);
+
           if(isNumeric(plafond_text, 0)) {
             if(isNumeric(interet_text, 1)) {
-              //ON CREE LE LIVRET
+              if(type_livret_text != NULL) {
+                //ON CREE LE LIVRET
+                char requestAccount[1024] = "INSERT INTO compte VALUES ('";
+                strcat(requestAccount, iban_text);
+                strcat(requestAccount, "', '");
+                strcat(requestAccount, solde_text);
+                strcat(requestAccount, "', '");
+                strcat(requestAccount, libelle_text);
+                strcat(requestAccount, "', 'TRUE', '");
+                strcat(requestAccount, login);
+                strcat(requestAccount, "');");
 
-              printf("Livret\n");
+                if(bdd_execute(requestAccount)) {
+                  char requestSavings[1024] = "INSERT INTO livret VALUES ('";
+                  strcat(requestSavings, iban_text);
+                  strcat(requestSavings, "', '");
+                  strcat(requestSavings, plafond_text);
+                  strcat(requestSavings, "', '");
+                  strcat(requestSavings, interet_text);
+                  strcat(requestSavings, "', '");
+                  strcat(requestSavings, type_livret_text);
+                  strcat(requestSavings, "');");
 
+                  if(bdd_execute(requestSavings)) {
+                    alert_window("Savings account created !");
+                  }
+                  else {
+                    alert_window("ERROR: Can't create savings account");
+                  }
+                }
+                else {
+                  alert_window("Can't create the account before the savings account");
+                }
+              }
+              else {
+                alert_window("You must choose a savings account type");
+              }
             }
             else {
               alert_window("Interet is not a numeric");
@@ -84,7 +121,22 @@ void create_account(GtkWidget* widget, gpointer* data) {
         }
         else {
           //CREATION DUN COMPTE
-          printf("Compte\n");
+          char request[1024] = "INSERT INTO compte VALUES ('";
+          strcat(request, iban_text);
+          strcat(request, "', '");
+          strcat(request, solde_text);
+          strcat(request, "', '");
+          strcat(request, libelle_text);
+          strcat(request, "', 'FALSE', '");
+          strcat(request, login);
+          strcat(request, "');");
+
+          if(bdd_execute(request)) {
+            alert_window("Account has been created !");
+          }
+          else {
+            alert_window("ERROR: Can't create the account");
+          }
         }
       }
       else {
