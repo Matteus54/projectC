@@ -15,6 +15,11 @@ void create_transaction_form() {}
 
 void import_releve() {
 
+  char* filename = file_browser();
+  
+  printf("path to selected releve : %s\n", filename);
+
+  g_free(filename);
 }
 
 void transaction_window(GtkWidget *widget, gpointer* data) {
