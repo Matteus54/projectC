@@ -97,26 +97,26 @@ void create_account(GtkWidget* widget, gpointer* data) {
                   strcat(requestSavings, "');");
 
                   if(bdd_execute(requestSavings)) {
-                    alert_window("Savings account created !");
+                    alert_dialog("Savings account created !");
                   }
                   else {
-                    alert_window("ERROR: Can't create savings account");
+                    alert_dialog("ERROR: Can't create savings account");
                   }
                 }
                 else {
-                  alert_window("Can't create the account before the savings account");
+                  alert_dialog("Can't create the account before the savings account");
                 }
               }
               else {
-                alert_window("You must choose a savings account type");
+                alert_dialog("You must choose a savings account type");
               }
             }
             else {
-              alert_window("Interet is not a numeric");
+              alert_dialog("Interet is not a numeric");
             }
           }
           else {
-            alert_window("Plafond is not a numeric");
+            alert_dialog("Plafond is not a numeric");
           }
         }
         else {
@@ -132,23 +132,23 @@ void create_account(GtkWidget* widget, gpointer* data) {
           strcat(request, "');");
 
           if(bdd_execute(request)) {
-            alert_window("Account has been created !");
+            alert_dialog("Account has been created !");
           }
           else {
-            alert_window("ERROR: Can't create the account");
+            alert_dialog("ERROR: Can't create the account");
           }
         }
       }
       else {
-        alert_window("Error: Libelle must be between 0 and 255");
+        alert_dialog("Error: Libelle must be between 0 and 255");
       }
     }
     else {
-      alert_window("Solde is not numeric");
+      alert_dialog("Solde is not numeric");
     }
   }
   else {
-    alert_window("Error: IBAN must be between 14 and 34");
+    alert_dialog("Error: IBAN must be between 14 and 34");
   }
 }
 

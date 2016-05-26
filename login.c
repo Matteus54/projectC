@@ -39,7 +39,7 @@ void try_login(GtkWidget* widget, gpointer* data) {
     main_window();
   }
   else {
-    alert_window("Unable to login, login or password incorrect");
+    alert_dialog("Unable to login, login or password incorrect");
   }
 }
 

@@ -34,18 +34,18 @@ void create_user(GtkWidget* widget, gpointer* data) {
       strcat(request, buffer);
       strcat(request, "');");
       if(bdd_execute(request)) {
-        alert_window("Utilisateur bien enregistré !");
+        alert_dialog("Utilisateur bien enregistré !");
       }
       else {
-        alert_window("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
+        alert_dialog("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
       }
     }
     else {
-      alert_window("Mot de passe differents ! Veuillez recommencer");
+      alert_dialog("Mot de passe differents ! Veuillez recommencer");
     }
   }
   else {
-    alert_window("Le login et le mot de passe doivent faire entre 6 et 30 caracteres");
+    alert_dialog("Le login et le mot de passe doivent faire entre 6 et 30 caracteres");
   }
 }
 

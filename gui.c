@@ -75,34 +75,6 @@ void alert_dialog(gchar *text) {
    gtk_dialog_run(GTK_DIALOG(dialog));
 }
 
-void alert_window(char *text) {
-  GtkWidget *windowAlert;
-  GtkWidget *alertGrid;
-  GtkWidget *button_OK;
-
-  windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-  gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER_ALWAYS);
-
-  alertGrid = gtk_grid_new();
-
-  gtk_container_add(GTK_CONTAINER(windowAlert), alertGrid);
-
-  GtkWidget *textAlert;
-  textAlert = gtk_label_new(text);
-
-  button_OK = gtk_button_new_with_label("OK");
-  g_signal_connect(button_OK, "clicked", G_CALLBACK(close_window), windowAlert);
-
-  widget_set_margin(textAlert, 10);
-  widget_set_margins(button_OK, 0, 10, 10, 10);
-
-  gtk_grid_attach(GTK_GRID(alertGrid), textAlert, 0, 0, 3, 1);
-  gtk_grid_attach(GTK_GRID(alertGrid), button_OK, 1, 1, 1, 1);
-
-  gtk_widget_show_all(windowAlert);
-}
-
 void main_window() {
   clean_window();
 
@@ -140,8 +112,6 @@ void main_handler(GtkApplication *app) {
   gtk_container_add(GTK_CONTAINER(window), grid);
 
   login_window();
-
-  alert_dialog("hello world");
 }
 
 /*
