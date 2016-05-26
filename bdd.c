@@ -9,8 +9,8 @@
 static sqlite3 *db;
 static char *zErrMsg = 0;
 static int rc;
-static char* request;
-const char* login;
+static char *request;
+char login[30];
 
 //Constante qui sert a definir la taille max du hashing
 const int MUST_BE_LESS_THAN = 100000000; // 8 decimal digits max
@@ -42,9 +42,9 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
 account_t** bdd_get_list_account() {
   int i = 0;
   sqlite3_stmt *stmt;
-  char * request = "SELECT * FROM compte WHERE proprietaire = '";
+  char request[1024] = "SELECT * FROM compte WHERE proprietaire = '";
   strcat(request, login);
-  strcat(request, "' AND booleanLivret = FALSE");
+  strcat(request, "';");
 
   account_t **listAccount = (account_t**) calloc(100, sizeof(account_t*));
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
@@ -55,16 +55,19 @@ account_t** bdd_get_list_account() {
         char *solde = (char *) sqlite3_column_text(stmt, 1);
         char *libelle = (char*) sqlite3_column_text(stmt, 2);
 
-        account_t* account = malloc(sizeof(account_t));
-        account->iban = iban;
-        account->solde = solde;
-        account->libelle = libelle;
+        account_t* account = malloc(sizeof(account_t*));
+        account->iban = malloc(sizeof(iban));
+        memcpy(account->iban, iban, strlen(iban));
+        account->solde = malloc(sizeof(solde));
+        memcpy(account->solde, solde, strlen(solde));
+        account->libelle = malloc(sizeof(libelle));
+        memcpy(account->libelle, libelle, strlen(libelle));
 
-        listAccount[i] = (account_t*) malloc(sizeof(account_t));
         listAccount[i] = account;
+
+        printf("Account: %s | %s | %s \n", listAccount[i]->iban, listAccount[i]->solde, listAccount[i]->libelle);
         i++;
         res_stmt = sqlite3_step(stmt);
-
       }
       return listAccount;
     }
@@ -75,7 +78,7 @@ account_t** bdd_get_list_account() {
     }
   }
   else {
-    printf("SQL ERROR GET ACCOUNTS");
+    printf("SQL ERROR GET ACCOUNTS\n");
     return NULL;
   }
 }
@@ -93,7 +96,6 @@ char** bdd_get_type_livret() {
         text = (char*)sqlite3_column_text(stmt,0);
         listText[i] = (char *)calloc(strlen(text)+2,sizeof(char));
         memcpy(listText[i], text, strlen(text));
-        memset(text, 0, strlen(text));
         i++;
         res_stmt = sqlite3_step(stmt);
       }
@@ -117,10 +119,9 @@ int bdd_login(char* request) {
   if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      const char* text;
+      char* text;
       text = (char*)sqlite3_column_text(stmt,0);
-      printf("login with: %s\n", text);
-      login = text;
+      memcpy(login, text, strlen(text));
       sqlite3_finalize(stmt);
       return 1;
     }

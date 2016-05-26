@@ -6,7 +6,7 @@
 #include "bdd.h"
 #include "compte.h"
 
-extern const char* login;
+extern char login[30];
 
 
 int isNumeric(const char *string, int isDecimal) {
@@ -255,28 +255,55 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
 
-  GtkWidget *listBoxAccount;
-  listBoxAccount = gtk_list_box_new();
 
   //ON AJOUTE LA LISTE DES COMPTES A CETTE LIST BOX listBoxAccount
-  //account_t **listType = bdd_get_list_account();
+  GtkListStore*      model;
+  GtkWidget*         view;
+  GtkTreeViewColumn* column;
 
-/*
-  while(*listType != NULL) {
-    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(type_livret_list),NULL,*listType);
-    listType++;
+  model = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+
+  account_t **listType = bdd_get_list_account();
+
+  if(listType != NULL) {
+    account_t* account = (account_t*)malloc(sizeof(account_t));
+    while(*listType != NULL) {
+      account->iban = (*listType)->iban;
+      account->solde = (*listType)->solde;
+      account->libelle = (*listType)->libelle;
+      gtk_list_store_insert_with_values(model, NULL, -1,
+                                      0, account->iban,
+                                      1, account->solde,
+                                      2, account->libelle,
+                                      -1);
+      listType++;
+    }
   }
-  */
 
-  GtkWidget *listBoxTransaction;
-  listBoxTransaction = gtk_list_box_new();
+  view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
+  g_object_unref(model);
+  column = gtk_tree_view_column_new_with_attributes("Iban",
+                                                  gtk_cell_renderer_text_new(),
+                                                  "text", 0,
+                                                  NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+  column = gtk_tree_view_column_new_with_attributes("Solde",
+                                                  gtk_cell_renderer_text_new(),
+                                                  "text", 1,
+                                                  NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  column = gtk_tree_view_column_new_with_attributes("Libelle",
+                                                  gtk_cell_renderer_text_new(),
+                                                  "text", 2,
+                                                  NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
 
   GtkWidget *createCompteButton;
   createCompteButton = gtk_button_new_with_label("Create new account");
   g_signal_connect(createCompteButton, "clicked", G_CALLBACK(create_account_form), NULL);
 
-  gtk_grid_attach(GTK_GRID(gridBox), listBoxAccount, 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(gridBox), listBoxTransaction, 0, 2, 1, 1);
+  gtk_grid_attach(GTK_GRID(gridBox), view, 0, 0, 1, 1);
   gtk_grid_attach(GTK_GRID(gridBox), createCompteButton, 1, 1, 1, 1);
   //ICI ON RECUPERE LES DONNEES DE TOUS LES COMPTES EXISTANT A UN MEC
 
