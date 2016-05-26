@@ -83,7 +83,7 @@ int bdd_login(char* request) {
       return 1;
     }
     else{
-      printf("Can't able to log, login or password incorrect\n");
+      printf("Unable to login, login or password incorrect\n");
       sqlite3_finalize(stmt);
       return 0;
     }

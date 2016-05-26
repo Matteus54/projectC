@@ -13,6 +13,7 @@
 GtkApplication *app;
 GtkWidget *window;
 GtkWidget *grid;
+int result = 1;
 
 
 void show_hide_button_box(GtkWidget *button, GtkWidget *box) {
@@ -38,6 +39,68 @@ void close_window(GtkWidget *widget, gpointer window) {
   gtk_widget_destroy(GTK_WIDGET(window));
 }
 
+void alert_window(char *alertText) {
+  GtkWidget *windowAlert;
+  GtkWidget *alertGrid;
+  GtkWidget *button_OK;
+
+  windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
+
+  alertGrid = gtk_grid_new();
+
+  gtk_container_add(GTK_CONTAINER(windowAlert), alertGrid);
+
+  GtkWidget *textAlert;
+  textAlert = gtk_label_new(alertText);
+
+  button_OK = gtk_button_new_with_label("OK");
+  g_signal_connect(button_OK, "clicked", G_CALLBACK(close_window), windowAlert);
+
+  gtk_grid_attach(GTK_GRID(alertGrid), textAlert, 0, 0, 3, 1);
+  gtk_grid_attach(GTK_GRID(alertGrid), button_OK, 1, 1, 1, 1);
+
+  gtk_widget_show_all(windowAlert);
+}
+
+void main_window() {
+  clean_window();
+
+  GtkWidget *button_compte, *button_transaction, *button_exit;
+
+  //setting window
+  gtk_window_set_title(GTK_WINDOW(window), "Welcome");
+
+  button_compte = gtk_button_new_with_label("Compte");
+  g_signal_connect(button_compte, "clicked", G_CALLBACK(show_compte), NULL);
+
+  gtk_grid_attach(GTK_GRID(grid), button_compte, 0,0,1,1);
+
+  button_transaction = gtk_button_new_with_label("Transaction");
+  g_signal_connect(button_transaction, "clicked", G_CALLBACK(show_transaction), NULL);
+
+  gtk_grid_attach(GTK_GRID(grid), button_transaction, 1,0,1,1);
+
+  button_exit = gtk_button_new_with_label("Exit");
+  g_signal_connect(button_exit, "clicked", G_CALLBACK(close_window), window);
+
+  gtk_grid_attach(GTK_GRID(grid), button_exit, 0,1,2,1);
+
+  gtk_widget_show_all(window);
+}
+
+void main_handler(GtkApplication *app) {
+  /* Definition et personnalisation de la fenetre */
+  window = gtk_application_window_new(app);
+  gtk_window_set_default_size(GTK_WINDOW(window), 640,480);
+  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+
+  //Construction of grid
+  grid = gtk_grid_new();
+  gtk_container_add(GTK_CONTAINER(window), grid);
+
+  login_window();
+}
 
 /*
   Fonction qui initialise l'interface graphique de l'application
@@ -48,15 +111,16 @@ int gui_init(int argc, char **argv) {
   /* Initialisation de GTK+ */
   gtk_init(&argc, &argv);
 
-  int status;
+  int status = 0;
 
   //creer lapplication
   app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE);
   //quitte lapplication si click sur la croix
 
   //lance la fonction login_page au lancement
-  g_signal_connect(app, "activate", G_CALLBACK(login_page), NULL);
+  g_signal_connect(app, "activate", G_CALLBACK(main_handler), NULL);
   //defini le status de lapplication
+
   status = g_application_run(G_APPLICATION(app), argc, argv);
   g_object_unref(app);
 

@@ -34,64 +34,19 @@ void create_user(GtkWidget* widget, gpointer* data) {
       strcat(request, buffer);
       strcat(request, "');");
       if(bdd_execute(request)) {
-        GtkWidget *windowAlert;
-        windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-
-        GtkWidget *textAlert;
-        textAlert = gtk_label_new("Utilisateur bien enregistré !");
-
-        gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
-        gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
-        gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
-
-        gtk_widget_show_all(windowAlert);
+        alert_window("Utilisateur bien enregistré !");
       }
       else {
-        GtkWidget *windowAlert;
-        windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-
-        GtkWidget *textAlert;
-        textAlert = gtk_label_new("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
-
-        gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
-        gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
-        gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
-
-        gtk_widget_show_all(windowAlert);
+        alert_window("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
       }
     }
     else {
-      GtkWidget *windowAlert;
-      windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-
-      GtkWidget *textAlert;
-      textAlert = gtk_label_new("Mot de passe differents ! Veuillez recommencer");
-
-      gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
-      gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
-      gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
-
-      gtk_widget_show_all(windowAlert);
+      alert_window("Mot de passe differents ! Veuillez recommencer");
     }
   }
   else {
-    GtkWidget *windowAlert;
-    windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-
-    GtkWidget *textAlert;
-    textAlert = gtk_label_new("Le login et le mot de passe doivent faire entre 6 et 30 caracteres");
-
-    gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
-    gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
-    gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
-
-    gtk_widget_show_all(windowAlert);
+    alert_window("Le login et le mot de passe doivent faire entre 6 et 30 caracteres");
   }
-
 }
 
 /*

@@ -12,10 +12,10 @@ extern GtkApplication *app;
 extern GtkWidget *window;
 extern GtkWidget *grid;
 
-
-
 void try_login(GtkWidget* widget, gpointer* data) {
   UNUSED(widget);
+
+  gtk_window_set_title(GTK_WINDOW(window), "Gestionnaire bancaire");
   user_entry_login_t* user_data_entry = (user_entry_login_t*) data;
 
   //extraction of content from fields
@@ -35,66 +35,17 @@ void try_login(GtkWidget* widget, gpointer* data) {
   strcat(request, buffer);
   strcat(request, "';");
   if(bdd_login(request)) {
-
-    // il faut mettre tout ce code dans une autre fonction,la page d'accueil
-
-    clean_window();
-
-    GtkWidget *button_compte, *button_transaction, *button_exit;
-
-    //setting window
-    gtk_window_set_title(GTK_WINDOW(window), "Welcome");
-
-    button_compte = gtk_button_new_with_label("Compte");
-    g_signal_connect(button_compte, "clicked", G_CALLBACK(show_compte), NULL);
-
-    gtk_grid_attach(GTK_GRID(grid), button_compte, 0,0,1,1);
-
-    button_transaction = gtk_button_new_with_label("Transaction");
-    g_signal_connect(button_transaction, "clicked", G_CALLBACK(show_transaction), NULL);
-
-    gtk_grid_attach(GTK_GRID(grid), button_transaction, 1,0,1,1);
-
-    button_exit = gtk_button_new_with_label("Exit");
-    g_signal_connect(button_exit, "clicked", G_CALLBACK(close_window), window);
-
-    gtk_grid_attach(GTK_GRID(grid), button_exit, 0,1,2,1);
-
-    gtk_widget_show_all(window);
+    main_window();
   }
   else {
-    GtkWidget *windowAlert;
-    windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
-
-    GtkWidget *textAlert;
-    textAlert = gtk_label_new("Unable to login, login or password incorrect");
-
-    gtk_container_add(GTK_CONTAINER(windowAlert), textAlert);
-    gtk_window_set_default_size(GTK_WINDOW(windowAlert), 200,100);
-    gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER);
-
-    gtk_widget_show_all(windowAlert);
+    alert_window("Unable to login, login or password incorrect");
   }
 }
-
-
 
 /*
   Donne a lapplication la fenetre window qui propose soit de se logger, soit de creer un nouvel utilisateur
 */
-void login_page(GtkApplication *app) {
-  window = gtk_application_window_new(app);
-
-  //Construction of grid
-  grid = gtk_grid_new();
-  gtk_container_add(GTK_CONTAINER(window), grid);
-
-  /* Definition et personnalisation de la fenetre */
-  gtk_window_set_title(GTK_WINDOW(window), "Gestionnaire bancaire");
-  gtk_window_set_default_size(GTK_WINDOW(window), 640,480);
-  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-
+void login_window() {
   GtkWidget *login_field;
   GtkWidget *password_field;
   GtkWidget *submit_button, *create_user_button;
@@ -109,6 +60,7 @@ void login_page(GtkApplication *app) {
   user_entry_login_t* user_data_entry = malloc(sizeof(user_entry_login_t));
   user_data_entry->login = login_field;
   user_data_entry->password = password_field;
+
   g_signal_connect(GTK_BUTTON(submit_button), "clicked", G_CALLBACK(try_login), user_data_entry);
 
   create_user_button = gtk_button_new_with_label("Create new user");
