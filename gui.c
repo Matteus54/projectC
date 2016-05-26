@@ -18,8 +18,8 @@ int result = 1;
 void widget_set_margins(GtkWidget *widget, int top, int bottom, int left, int right) {
   gtk_widget_set_margin_top(widget, top);
   gtk_widget_set_margin_bottom(widget, bottom);
-  gtk_widget_set_margin_left(widget, left);
-  gtk_widget_set_margin_right(widget, right);
+  gtk_widget_set_margin_start(widget, left);
+  gtk_widget_set_margin_end(widget, right);
 }
 
 void widget_set_margin(GtkWidget *widget, int margin) {

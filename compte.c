@@ -259,7 +259,7 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   listBoxAccount = gtk_list_box_new();
 
   //ON AJOUTE LA LISTE DES COMPTES A CETTE LIST BOX listBoxAccount
-  account_t **listType = bdd_get_list_account();
+  //account_t **listType = bdd_get_list_account();
 
 /*
   while(*listType != NULL) {
