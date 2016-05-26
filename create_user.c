@@ -2,7 +2,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include "gui.h"
-#include "user_entries_structs.h"
 #include "create_user.h"
 #include "bdd.h"
 

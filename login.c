@@ -2,7 +2,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include "gui.h"
-#include "user_entries_structs.h"
 #include "create_user.h"
 #include "login.h"
 #include "compte.h"
@@ -18,14 +17,14 @@ extern GtkWidget *grid;
 void try_login(GtkWidget* widget, gpointer* data) {
   UNUSED(widget);
   user_entry_login_t* user_data_entry = (user_entry_login_t*) data;
-  
+
   //extraction of content from fields
   GtkWidget *login = GTK_WIDGET(user_data_entry->login);
   GtkWidget *password = GTK_WIDGET(user_data_entry->password);
 
   const char *login_text = gtk_entry_get_text(GTK_ENTRY(login));
   const char *password_text = gtk_entry_get_text(GTK_ENTRY(password));
-  
+
   int password_hash = hash(password_text);
   char buffer[8];
   sprintf(buffer, "%d", password_hash);
@@ -36,9 +35,9 @@ void try_login(GtkWidget* widget, gpointer* data) {
   strcat(request, buffer);
   strcat(request, "';");
   if(bdd_login(request)) {
-    
+
     // il faut mettre tout ce code dans une autre fonction,la page d'accueil
-    
+
     clean_window();
 
     GtkWidget *button_compte, *button_transaction, *button_exit;

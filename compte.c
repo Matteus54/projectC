@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include "gui.h"
-#include "user_entries_structs.h"
 #include "compte.h"
 #include "bdd.h"
 
@@ -12,7 +11,7 @@ void create_account() {
 void create_account_form() {
   GtkWidget *windowAccountForm;
   GtkWidget *vbox, *livretVbox;
-  GtkWidget *id_field, *libelle_field, *booleanLivret;
+  GtkWidget *iban_field, *libelle_field, *booleanLivret;
   GtkWidget *create_account_button, *exit_button;
 
   windowAccountForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -23,7 +22,7 @@ void create_account_form() {
   vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL,10);
   gtk_container_add(GTK_CONTAINER(windowAccountForm), vbox);
 
-  id_field = gtk_entry_new();
+  iban_field = gtk_entry_new();
   libelle_field = gtk_entry_new();
   booleanLivret = gtk_check_button_new_with_label("Livret");
 
@@ -53,15 +52,22 @@ void create_account_form() {
   gtk_box_pack_start(GTK_BOX(livretVbox), type_livret_list, 0, 0, 0);
   /* FIN LIVRET FORM */
 
+  account_entry_creation_t* account_entries = malloc(sizeof(account_entry_creation_t));
+  account_entries->iban = iban_field;
+  account_entries->libelle = libelle_field;
+  account_entries->livret = booleanLivret;
+  account_entries->plafond = plafond;
+  account_entries->interet = interet;
+  account_entries->type_livret = type_livret_list;
 
   create_account_button = gtk_button_new_with_label("Create the account");
-  g_signal_connect(GTK_BUTTON(create_account_button), "clicked", G_CALLBACK(create_account), NULL);
+  g_signal_connect(GTK_BUTTON(create_account_button), "clicked", G_CALLBACK(create_account), account_entries);
 
   exit_button = gtk_button_new_with_label("Exit form");
   g_signal_connect(GTK_BUTTON(exit_button), "clicked", G_CALLBACK(close_window), G_OBJECT(windowAccountForm));
 
   gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Id"), 0, 0, 0);
-  gtk_box_pack_start(GTK_BOX(vbox), id_field, 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), iban_field, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Libelle"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), libelle_field, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), booleanLivret, 0, 0, 0);
