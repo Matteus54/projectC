@@ -15,6 +15,16 @@ GtkWidget *window;
 GtkWidget *grid;
 int result = 1;
 
+void widget_set_margins(GtkWidget *widget, int top, int bottom, int left, int right) {
+  gtk_widget_set_margin_top(widget, top);
+  gtk_widget_set_margin_bottom(widget, bottom);
+  gtk_widget_set_margin_left(widget, left);
+  gtk_widget_set_margin_right(widget, right);
+}
+
+void widget_set_margin(GtkWidget *widget, int margin) {
+  widget_set_margins(widget, margin, margin, margin, margin);
+}
 
 void show_hide_button_box(GtkWidget *button, GtkWidget *box) {
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button))){
@@ -39,23 +49,53 @@ void close_window(GtkWidget *widget, gpointer window) {
   gtk_widget_destroy(GTK_WIDGET(window));
 }
 
-void alert_window(char *alertText) {
+void alert_dialog(gchar *text) {
+   GtkWidget *dialog, *textAlert, *content_area;
+
+   /* Create the widgets */
+//   dialog = gtk_dialog_new_with_buttons("Alert", window, ("OK"), GTK_RESPONSE_NONE, NULL);
+   dialog = gtk_dialog_new_with_buttons ("Alert",
+                                         GTK_WINDOW(window),
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         ("OK"),
+                                         GTK_RESPONSE_NONE,
+                                         NULL);
+
+   content_area = gtk_dialog_get_content_area(GTK_DIALOG (dialog));
+
+   textAlert = gtk_label_new (text);
+
+   /* Ensure that the dialog box is destroyed when the user responds */
+   g_signal_connect_swapped (dialog, "response", G_CALLBACK (gtk_widget_destroy), dialog);
+
+   widget_set_margin(textAlert, 10);
+
+   gtk_container_add (GTK_CONTAINER (content_area), textAlert);
+   gtk_widget_show_all(dialog);
+   gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
+void alert_window(char *text) {
   GtkWidget *windowAlert;
   GtkWidget *alertGrid;
   GtkWidget *button_OK;
 
   windowAlert = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(windowAlert), "Alerte");
+  gtk_window_set_position(GTK_WINDOW(windowAlert), GTK_WIN_POS_CENTER_ALWAYS);
 
   alertGrid = gtk_grid_new();
 
   gtk_container_add(GTK_CONTAINER(windowAlert), alertGrid);
 
   GtkWidget *textAlert;
-  textAlert = gtk_label_new(alertText);
+  textAlert = gtk_label_new(text);
 
   button_OK = gtk_button_new_with_label("OK");
   g_signal_connect(button_OK, "clicked", G_CALLBACK(close_window), windowAlert);
+
+  widget_set_margin(textAlert, 10);
+  widget_set_margins(button_OK, 0, 10, 10, 10);
 
   gtk_grid_attach(GTK_GRID(alertGrid), textAlert, 0, 0, 3, 1);
   gtk_grid_attach(GTK_GRID(alertGrid), button_OK, 1, 1, 1, 1);
@@ -100,6 +140,8 @@ void main_handler(GtkApplication *app) {
   gtk_container_add(GTK_CONTAINER(window), grid);
 
   login_window();
+
+  alert_dialog("hello world");
 }
 
 /*
