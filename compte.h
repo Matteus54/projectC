@@ -3,6 +3,7 @@
 
 typedef struct {
   GtkWidget *iban;
+  GtkWidget *solde;
   GtkWidget *libelle;
   GtkWidget *livret;
   GtkWidget *plafond;

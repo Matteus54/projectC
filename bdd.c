@@ -48,7 +48,7 @@ char **bdd_get_type_livret() {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
       while(res_stmt == SQLITE_ROW) {
-        text = sqlite3_column_text(stmt,0);
+        text = (char*)sqlite3_column_text(stmt,0);
         listText[i] = (char *)calloc(strlen(text)+2,sizeof(char));
         memcpy(listText[i], text, strlen(text));
         memset(text, 0, strlen(text));

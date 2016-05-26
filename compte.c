@@ -1,17 +1,113 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
+#include <string.h>
+#include <ctype.h>
 #include "gui.h"
 #include "compte.h"
 #include "bdd.h"
 
-void create_account() {
 
+int isNumeric(const char *string, int isDecimal) {
+  int virgulePresente = 0;
+  int isDigit = 1;
+  int length = strlen(string);
+  if(length == 0) {
+    isDigit = 0;
+  }
+  int i;
+  for(i = 0; i < length; i++) {
+    char c = string[i];
+    if(!isdigit(c)) {
+      if(isDecimal) {
+        if(!(c == '.')) {
+          isDigit = 0;
+        }
+        else {
+          if(!virgulePresente) {
+            virgulePresente = 1;
+          }
+          else {
+            isDigit = 0;
+          }
+        }
+      }
+      else {
+        isDigit = 0;
+      }
+    }
+  }
+  return isDigit;
 }
+
+
+
+void create_account(GtkWidget* widget, gpointer* data) {
+  UNUSED(widget);
+
+  account_entry_creation_t* account_entries = (account_entry_creation_t*) data;
+  GtkWidget *iban = GTK_WIDGET(account_entries->iban);
+  GtkWidget *solde = GTK_WIDGET(account_entries->solde);
+  GtkWidget *libelle = GTK_WIDGET(account_entries->libelle);
+  GtkWidget *livret = GTK_WIDGET(account_entries->livret);
+  GtkWidget *plafond = GTK_WIDGET(account_entries->plafond);
+  GtkWidget *interet = GTK_WIDGET(account_entries->interet);
+  GtkWidget *type_livret = GTK_WIDGET(account_entries->type_livret);
+
+  const char *iban_text = gtk_entry_get_text(GTK_ENTRY(iban));
+  const char *libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
+  const char *solde_text = gtk_entry_get_text(GTK_ENTRY(solde));
+
+
+  if(strlen(iban_text) >= 14 && strlen(iban_text) <= 34) {              // TEST SI IBAN CORRECT
+    if(isNumeric(solde_text, 1)) {                                      // TEST SI SOLDE EST BIEN NUMERIC
+      if(strlen(libelle_text) <= 255) {                                 // TEST SI LIBELLE ENTRE 0 ET 255
+        if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(livret))){    // TEST SI BUTTON CHECK
+          //CREATION DUN LIVRET
+          const char *plafond_text = gtk_entry_get_text(GTK_ENTRY(plafond));
+          const char *interet_text = gtk_entry_get_text(GTK_ENTRY(interet));
+          const char *type_livret_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(type_livret));
+
+          if(isNumeric(plafond_text, 0)) {
+            if(isNumeric(interet_text, 1)) {
+              //ON CREE LE LIVRET
+
+              printf("Livret\n");
+
+            }
+            else {
+              alert_window("Interet is not a numeric");
+            }
+          }
+          else {
+            alert_window("Plafond is not a numeric");
+          }
+        }
+        else {
+          //CREATION DUN COMPTE
+          printf("Compte\n");
+        }
+      }
+      else {
+        alert_window("Error: Libelle must be between 0 and 255");
+      }
+    }
+    else {
+      alert_window("Solde is not numeric");
+    }
+  }
+  else {
+    alert_window("Error: IBAN must be between 14 and 34");
+  }
+}
+
+
+
+
 
 void create_account_form() {
   GtkWidget *windowAccountForm;
   GtkWidget *vbox, *livretVbox;
-  GtkWidget *iban_field, *libelle_field, *booleanLivret;
+  GtkWidget *iban_field, *solde_field, *libelle_field, *booleanLivret;
   GtkWidget *create_account_button, *exit_button;
 
   windowAccountForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -24,6 +120,7 @@ void create_account_form() {
 
   iban_field = gtk_entry_new();
   libelle_field = gtk_entry_new();
+  solde_field = gtk_entry_new();
   booleanLivret = gtk_check_button_new_with_label("Livret");
 
   /* LIVRET FORM */
@@ -54,6 +151,7 @@ void create_account_form() {
 
   account_entry_creation_t* account_entries = malloc(sizeof(account_entry_creation_t));
   account_entries->iban = iban_field;
+  account_entries->solde = solde_field;
   account_entries->libelle = libelle_field;
   account_entries->livret = booleanLivret;
   account_entries->plafond = plafond;
@@ -70,6 +168,8 @@ void create_account_form() {
   gtk_box_pack_start(GTK_BOX(vbox), iban_field, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Libelle"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), libelle_field, 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Solde"), 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), solde_field, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), booleanLivret, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), livretVbox, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), create_account_button, 0, 0, 0);
