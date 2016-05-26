@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include <string.h>
+#include "compte.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -38,7 +39,48 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
-char **bdd_get_type_livret() {
+account_t** bdd_get_list_account() {
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char * request = "SELECT * FROM compte WHERE proprietaire = '";
+  strcat(request, login);
+  strcat(request, "' AND booleanLivret = FALSE");
+
+  account_t **listAccount = (account_t**) calloc(100, sizeof(account_t*));
+  if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW) {
+        char *iban = (char *) sqlite3_column_text(stmt, 0);
+        char *solde = (char *) sqlite3_column_text(stmt, 1);
+        char *libelle = (char*) sqlite3_column_text(stmt, 2);
+
+        account_t* account = malloc(sizeof(account_t));
+        account->iban = iban;
+        account->solde = solde;
+        account->libelle = libelle;
+
+        listAccount[i] = (account_t*) malloc(sizeof(account_t));
+        listAccount[i] = account;
+        i++;
+        res_stmt = sqlite3_step(stmt);
+
+      }
+      return listAccount;
+    }
+    else {
+      printf("Unable to get list of accounts\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+  }
+  else {
+    printf("SQL ERROR GET ACCOUNTS");
+    return NULL;
+  }
+}
+
+char** bdd_get_type_livret() {
   char **listText = (char **) calloc (30,sizeof(char*));
   char *text;
   int i = 0;
@@ -58,7 +100,7 @@ char **bdd_get_type_livret() {
       return listText;
     }
     else {
-      printf("Can't able to get type of livret\n");
+      printf("Unable to get type of livret\n");
       sqlite3_finalize(stmt);
       return NULL;
     }

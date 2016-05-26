@@ -1,5 +1,7 @@
-#include <gtk/gtk.h>
+#ifndef COMPTE_H
+#define COMPTE_H
 
+#include <gtk/gtk.h>
 
 typedef struct {
   GtkWidget *iban;
@@ -11,7 +13,24 @@ typedef struct {
   GtkWidget *type_livret;
 } account_entry_creation_t;
 
+typedef struct {
+  char *iban;
+  char *solde;
+  char *libelle;
+} account_t;
 
-void create_account();
+typedef struct {
+  char *iban;
+  char *solde;
+  char *libelle;
+  char *plafond;
+  char *interet;
+  char *type_livret;
+} livret_t;
+
+int isNumeric(const char *string, int isDecimal);
+void create_account(GtkWidget* widget, gpointer* data);
 void create_account_form();
 void show_compte (GtkWidget *widget, gpointer* data);
+
+#endif
