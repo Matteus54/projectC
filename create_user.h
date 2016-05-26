@@ -1,3 +1,6 @@
+#ifndef CREATE_USER_H
+#define CREATE_USER_H
+
 #include <gtk/gtk.h>
 
 typedef struct {
@@ -13,3 +16,5 @@ typedef struct {
 
 void create_user(GtkWidget* widget, gpointer* data);
 void create_user_form();
+
+#endif

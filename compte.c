@@ -3,8 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include "gui.h"
-#include "compte.h"
 #include "bdd.h"
+#include "compte.h"
 
 extern const char* login;
 
@@ -257,6 +257,16 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   GtkWidget *listBoxAccount;
   listBoxAccount = gtk_list_box_new();
+
+  //ON AJOUTE LA LISTE DES COMPTES A CETTE LIST BOX listBoxAccount
+  account_t **listType = bdd_get_list_account();
+
+/*
+  while(*listType != NULL) {
+    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(type_livret_list),NULL,*listType);
+    listType++;
+  }
+  */
 
   GtkWidget *listBoxTransaction;
   listBoxTransaction = gtk_list_box_new();

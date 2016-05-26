@@ -6,6 +6,6 @@
 int main(int argc, char **argv) {
     bdd_init();
     gui_init(argc, argv);
-    
+
     return 0;
 }

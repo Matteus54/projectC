@@ -4,9 +4,7 @@
 #include "gui.h"
 #include "create_user.h"
 #include "login.h"
-#include "compte.h"
 #include "bdd.h"
-#include "transactions.h"
 
 extern GtkApplication *app;
 extern GtkWidget *window;
