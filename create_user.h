@@ -7,6 +7,7 @@ typedef struct {
   GtkWidget *login;
   GtkWidget *password;
   GtkWidget *password_check;
+  GtkWidget *window;
 } user_entry_creation_t;
 
 typedef struct {

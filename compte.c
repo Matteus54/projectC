@@ -5,6 +5,7 @@
 #include "gui.h"
 #include "bdd.h"
 #include "compte.h"
+#include "transactions.h"
 
 extern char login[30];
 
@@ -54,6 +55,7 @@ void create_account(GtkWidget* widget, gpointer* data) {
   GtkWidget *plafond = GTK_WIDGET(account_entries->plafond);
   GtkWidget *interet = GTK_WIDGET(account_entries->interet);
   GtkWidget *type_livret = GTK_WIDGET(account_entries->type_livret);
+  GtkWidget *window = GTK_WIDGET(account_entries->window);
 
   const char *iban_text = gtk_entry_get_text(GTK_ENTRY(iban));
   const char *libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
@@ -98,6 +100,7 @@ void create_account(GtkWidget* widget, gpointer* data) {
 
                   if(bdd_execute(requestSavings)) {
                     alert_dialog("Savings account created !");
+                    close_window(NULL, window);
                   }
                   else {
                     alert_dialog("ERROR: Can't create savings account");
@@ -133,6 +136,7 @@ void create_account(GtkWidget* widget, gpointer* data) {
 
           if(bdd_execute(request)) {
             alert_dialog("Account has been created !");
+            close_window(NULL, window);
           }
           else {
             alert_dialog("ERROR: Can't create the account");
@@ -153,7 +157,22 @@ void create_account(GtkWidget* widget, gpointer* data) {
 }
 
 
+void tree_selection(GtkTreeSelection *selection, gpointer data) {
+  UNUSED(data);
+  GtkTreeIter iter;
+  GtkTreeModel* model;
+  GtkListStore* modelTransaction = data;
+  char *iban;
+  if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
+      gtk_tree_model_get (model, &iter, 0, &iban, -1);
 
+      transaction_t** listTransaction = bdd_get_list_transaction(iban);
+      
+
+      //gtk_list_store_insert_with_values(modelTransaction, NULL, -1,  0, iban, -1);
+      printf("Iban: %s\n", iban);
+    }
+}
 
 
 void create_account_form() {
@@ -209,6 +228,7 @@ void create_account_form() {
   account_entries->plafond = plafond;
   account_entries->interet = interet;
   account_entries->type_livret = type_livret_list;
+  account_entries->window = windowAccountForm;
 
   create_account_button = gtk_button_new_with_label("Create the account");
   g_signal_connect(GTK_BUTTON(create_account_button), "clicked", G_CALLBACK(create_account), account_entries);
@@ -258,16 +278,18 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   //ON AJOUTE LA LISTE DES COMPTES A CETTE LIST BOX listBoxAccount
   GtkListStore*      model;
+  GtkListStore*      modelTransaction;
   GtkWidget*         view;
+  GtkWidget*         viewTransaction;
   GtkTreeViewColumn* column;
+  GtkTreeSelection*  select;
 
   model = gtk_list_store_new(6, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING);
+  modelTransaction = gtk_list_store_new(8, G_TYPE_INT, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_BOOLEAN, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 
   account_t **listCompte = bdd_get_list_account();
-
   if(listCompte != NULL) {
     while(*listCompte != NULL) {
-
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listCompte)->iban,
                                       1, (*listCompte)->solde,
@@ -278,10 +300,8 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   }
 
   livret_t **listLivret = bdd_get_list_livret();
-
   if(listLivret != NULL) {
     while(*listLivret != NULL) {
-
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listLivret)->iban ,
                                       1, (*listLivret)->solde,
@@ -290,7 +310,6 @@ void show_compte (GtkWidget *widget, gpointer* data) {
                                       4, (*listLivret)->interet,
                                       5, (*listLivret)->type_livret,
                                       -1);
-
       listLivret++;
     }
   }
@@ -301,30 +320,49 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   column = gtk_tree_view_column_new_with_attributes("Iban", gtk_cell_renderer_text_new(), "text", 0, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-
   column = gtk_tree_view_column_new_with_attributes("Solde", gtk_cell_renderer_text_new(), "text", 1, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-
   column = gtk_tree_view_column_new_with_attributes("Libelle", gtk_cell_renderer_text_new(), "text", 2, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-
   column = gtk_tree_view_column_new_with_attributes("Plafond", gtk_cell_renderer_text_new(), "text", 3, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-
   column = gtk_tree_view_column_new_with_attributes("Interet", gtk_cell_renderer_text_new(), "text", 4, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-
   column = gtk_tree_view_column_new_with_attributes("Type", gtk_cell_renderer_text_new(), "text", 5, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  //ONCLICK sur un compte, on applique la fonction tree_selection
+  select = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
+  gtk_tree_selection_set_mode(select, GTK_SELECTION_SINGLE);
+  g_signal_connect(G_OBJECT(select), "changed", G_CALLBACK(tree_selection), modelTransaction);
+
+  viewTransaction = gtk_tree_view_new_with_model(GTK_TREE_MODEL(modelTransaction));
+  g_object_unref(modelTransaction);
+
+  column = gtk_tree_view_column_new_with_attributes("Id", gtk_cell_renderer_text_new(), "text", 0, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("libelle", gtk_cell_renderer_text_new(), "text", 1, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("montant", gtk_cell_renderer_text_new(), "text", 2, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("negatif", gtk_cell_renderer_text_new(), "text", 3, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("commission", gtk_cell_renderer_text_new(), "text", 4, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("date", gtk_cell_renderer_text_new(), "text", 5, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("commentaire", gtk_cell_renderer_text_new(), "text", 6, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
+  column = gtk_tree_view_column_new_with_attributes("type", gtk_cell_renderer_text_new(), "text", 7, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
 
   GtkWidget *createCompteButton;
   createCompteButton = gtk_button_new_with_label("Create new account");
   g_signal_connect(createCompteButton, "clicked", G_CALLBACK(create_account_form), NULL);
 
   gtk_grid_attach(GTK_GRID(gridBox), view, 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(gridBox), createCompteButton, 1, 1, 1, 1);
-  //ICI ON RECUPERE LES DONNEES DE TOUS LES COMPTES EXISTANT A UN MEC
-
+  gtk_grid_attach(GTK_GRID(gridBox), viewTransaction, 2, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(gridBox), createCompteButton, 1, 0, 1, 1);
 
   gtk_widget_show_all(windowCompte);
 }

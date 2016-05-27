@@ -11,6 +11,7 @@ typedef struct {
   GtkWidget *plafond;
   GtkWidget *interet;
   GtkWidget *type_livret;
+  GtkWidget *window;
 } account_entry_creation_t;
 
 typedef struct {

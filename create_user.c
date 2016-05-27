@@ -14,6 +14,7 @@ void create_user(GtkWidget* widget, gpointer* data) {
   GtkWidget *login = GTK_WIDGET(user_data->login);
   GtkWidget *password = GTK_WIDGET(user_data->password);
   GtkWidget *password_check = GTK_WIDGET(user_data->password_check);
+  GtkWidget *window = GTK_WIDGET(user_data->window);
   const char *login_text = gtk_entry_get_text(GTK_ENTRY(login));
   const char *password_text = gtk_entry_get_text(GTK_ENTRY(password));
   const char *password_check_text = gtk_entry_get_text(GTK_ENTRY(password_check));
@@ -33,8 +34,10 @@ void create_user(GtkWidget* widget, gpointer* data) {
       strcat(request, "', '");
       strcat(request, buffer);
       strcat(request, "');");
+
       if(bdd_execute(request)) {
         alert_dialog("Utilisateur bien enregistré !");
+        close_window(NULL, window);
       }
       else {
         alert_dialog("Erreur SQL, impossible de s'enregistrer (Login surement déjà utilisé)");
@@ -47,6 +50,7 @@ void create_user(GtkWidget* widget, gpointer* data) {
   else {
     alert_dialog("Le login et le mot de passe doivent faire entre 6 et 30 caracteres");
   }
+  close_window(NULL, window);
 }
 
 /*
@@ -81,6 +85,7 @@ void create_user_form() {
   user_data->login = login_field;
   user_data->password = password_field;
   user_data->password_check = password_2_field;
+  user_data->window = windowUserForm;
   g_signal_connect(GTK_BUTTON(create_user_button), "clicked", G_CALLBACK(create_user), user_data);
 
   exit_button = gtk_button_new_with_label("Exit form");

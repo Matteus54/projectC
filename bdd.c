@@ -3,6 +3,7 @@
 #include <sqlite3.h>
 #include <string.h>
 #include "compte.h"
+#include "transactions.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -39,6 +40,67 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
+transaction_t** bdd_get_list_transaction (char* iban) {
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char request[1024] = "SELECT * from transactionCompte WHERE compte_iban = '";
+  strcat(request, iban);
+  strcat(request, "';");
+  printf("Request: %s\n", request);
+
+  transaction_t **listTransaction = (transaction_t**) calloc(500, sizeof(transaction_t*));
+  if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      transaction_t* transaction = malloc(sizeof(transaction_t));
+      transaction->libelle = calloc(1,sizeof(transaction->libelle));
+      transaction->negatif = calloc(1,sizeof(transaction->negatif));
+      transaction->date = calloc(1,sizeof(transaction->libelle));
+      transaction->commentaire = calloc(1,sizeof(transaction->libelle));
+      transaction->type = calloc(1,sizeof(transaction->libelle));
+      transaction->compte_iban = calloc(1,sizeof(transaction->libelle));
+
+      while(res_stmt == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        char *libelle = (char*) sqlite3_column_text(stmt, 1);
+        double montant = (double) sqlite3_column_double(stmt, 2);
+        char *negatif = (char*) sqlite3_column_text(stmt, 3);
+        double commission = sqlite3_column_double(stmt, 4);
+        char *date = (char*) sqlite3_column_text(stmt, 5);
+        char *commentaire = (char*) sqlite3_column_text(stmt, 6);
+        char *type = (char*) sqlite3_column_text(stmt, 7);
+        char *compte_iban = (char*) sqlite3_column_text(stmt, 8);
+
+        transaction->id = id;
+        memcpy(transaction->libelle, libelle, strlen(libelle));
+        transaction->montant = montant;
+        memcpy(transaction->negatif, negatif, strlen(negatif));
+        transaction->commission = commission;
+        memcpy(transaction->date, date, strlen(date));
+        memcpy(transaction->commentaire, commentaire, strlen(commentaire));
+        memcpy(transaction->type, type, strlen(type));
+        memcpy(transaction->compte_iban, compte_iban, strlen(compte_iban));
+
+        listTransaction[i] = transaction;
+        i++;
+
+        res_stmt = sqlite3_step(stmt);
+      }
+      sqlite3_finalize(stmt);
+      return listTransaction;
+    }
+    else {
+      printf("Unable to get list of transactions\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+  }
+  else {
+    printf("SQL ERROR GET TRANSACTIONS\n");
+    return NULL;
+  }
+}
+
 livret_t** bdd_get_list_livret() {
   int i = 0;
   sqlite3_stmt *stmt;
@@ -70,14 +132,11 @@ livret_t** bdd_get_list_livret() {
         account->interet = interet;
         memcpy(account->type_livret, type_livret, strlen(type_livret));
 
-
-
         listSavingsAccount[i] = account;
         i++;
 
         res_stmt = sqlite3_step(stmt);
       }
-
       sqlite3_finalize(stmt);
       return listSavingsAccount;
     }
@@ -227,7 +286,7 @@ void bdd_init() {
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS compte (iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34), solde NUMBER(12,2) NOT NULL,"\
-          "libelle VARCHAR2(255), booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
+          "libelle VARCHAR2(255) UNIQUE, booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS livret_type (type_livret VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255));";
