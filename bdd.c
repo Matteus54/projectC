@@ -201,12 +201,14 @@ account_t** bdd_get_list_account() {
   }
 }
 
-char** bdd_get_type_livret() {
+char** bdd_get_field_from_table(char *table, char *field) {
   char **listText = (char **) calloc (30,sizeof(char*));
   char *text;
   int i = 0;
   sqlite3_stmt *stmt;
-  char *request = "SELECT type_livret FROM livret_type;";
+  char request[150];
+  sprintf(request, "SELECT %s FROM %s;", field, table);
+
   if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
@@ -220,7 +222,7 @@ char** bdd_get_type_livret() {
       return listText;
     }
     else {
-      printf("Unable to get type of livret\n");
+      printf("Unable to get list of field %s\n", field);
       sqlite3_finalize(stmt);
       return NULL;
     }
@@ -232,7 +234,11 @@ char** bdd_get_type_livret() {
 }
 
 char** bdd_get_categorie() {
-  return bdd_get_type_livret();
+  return bdd_get_field_from_table("typeTransaction", "type_trans");
+}
+
+char** bdd_get_type_livret() {
+  return bdd_get_field_from_table("livret_type", "type_livret");
 }
 
 int bdd_login(char* request) {
@@ -267,26 +273,24 @@ int bdd_execute(char *sql) {
     return 0;
   }
   else {
-    fprintf(stdout, "Records created successfully\n");
+    fprintf(stdout, "SQL request executed successfully\n");
     return 1;
   }
 }
 
-char* bdd_get_iban_from_libelle(char* libelle) {
+const char* bdd_get_iban_from_libelle(char* libelle) {
   char *request = "SELECT iban FROM compte WHERE libelle = ?;";
 
   sqlite3_stmt *stmt;
-  char *iban = malloc(sizeof(char)*34);
+  const char *iban = malloc(sizeof(char)*34);
   iban = "iban";
-
-  printf("%s\n", request);
 
   if (sqlite3_prepare_v2(db, request, 350, &stmt, 0) == SQLITE_OK) {
     sqlite3_bind_text(stmt, 1, libelle, -1, 0);
     int res_stmt = sqlite3_step(stmt);
 
     if(res_stmt == SQLITE_ROW) {
-      iban = (char*)sqlite3_column_text(stmt,0);
+      iban = (const char*)sqlite3_column_text(stmt,0);
     }
   } else {
     printf("SQL ERROR LOGIN\n");
@@ -294,10 +298,8 @@ char* bdd_get_iban_from_libelle(char* libelle) {
   }
 
   sqlite3_finalize(stmt);
-  printf("%s\n", iban);
 
   return iban;
-
 }
 
 /* Initialise la BDD lors du lancement de lapplication
@@ -318,19 +320,28 @@ void bdd_init() {
     fprintf(stdout, "Opened database successfully\n");
   }
 
-  request = "CREATE TABLE IF NOT EXISTS utilisateur (login VARCHAR2(30) PRIMARY KEY, password INT(8) NOT NULL);";
+  request = "CREATE TABLE IF NOT EXISTS utilisateur ("\
+            "login VARCHAR2(30) PRIMARY KEY,"\
+            "password INT(8) NOT NULL);";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS compte (iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34), solde NUMBER(12,2) NOT NULL,"\
-          "libelle VARCHAR2(255) UNIQUE, booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
+  request = "CREATE TABLE IF NOT EXISTS compte ("\
+            "iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34),"\
+            "solde NUMBER(12,2) NOT NULL,"\
+            "libelle VARCHAR2(255) UNIQUE,"\
+            "booleanLivret BOOLEAN NOT NULL,"\
+            "proprietaire VARCHAR2(30) NOT NULL,"\
+            "CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS livret_type (type_livret VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255));";
+  request = "CREATE TABLE IF NOT EXISTS livret_type ("\
+            "type_livret VARCHAR2(255) PRIMARY KEY,"\
+            "libelle VARCHAR2(255));";
   bdd_execute(request);
 
   request = "INSERT OR IGNORE INTO livret_type VALUES ('A', 'Livret A');";
   bdd_execute(request);
-  request = "INSERT OR IGNORE INTO livret_type VALUES ('Jeune', 'Livret A');";
+  request = "INSERT OR IGNORE INTO livret_type VALUES ('Jeune', 'Livret Jeune');";
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS livret (iban VARCHAR2(34) PRIMARY KEY, "\
@@ -339,7 +350,21 @@ void bdd_init() {
           "CONSTRAINT livret_type_fk FOREIGN KEY (type) REFERENCES livret_type(type_livret));";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS typeTransaction (type_trans VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255) NOT NULL)";
+  request = "CREATE TABLE IF NOT EXISTS typeTransaction ("\
+            "type_trans VARCHAR2(255) PRIMARY KEY);";
+  bdd_execute(request);
+
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Work');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Food');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Clothes');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Vacation');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Hobies');";
+  bdd_execute(request);
+  request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Transfert');";
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS transactionCompte ("\

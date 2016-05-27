@@ -16,13 +16,13 @@ typedef struct {
 
 typedef struct {
   int id;
-  char *compte;
-  char *date;
-  char *libelle;
+  const char *compte;
+  const char *date;
+  const char *libelle;
   float montant;
   float commission;
-  char *categorie;
-  char *commentaire;
+  const char *categorie;
+  const char *commentaire;
   //char *devise;
 } transaction_t;
 

@@ -5,7 +5,7 @@
 #include "gui.h"
 #include "compte.h"
 #include "bdd.h"
-#include "bdd_inserts.h"
+#include "bdd_updates.h"
 #include "transactions.h"
 
 extern GtkWidget *app;
@@ -30,7 +30,43 @@ const char* getfield(char* line, int num) // a reecrire (copier coller d'interne
 	return NULL;
 }
 
-void create_categorie() {}
+void create_categorie(GtkWidget *widget, GtkWidget *field) {
+	UNUSED(widget);
+
+	char *newCat = (char*)gtk_entry_get_text(GTK_ENTRY(field));
+
+	bdd_insert_categorie(newCat);
+}
+
+void create_categorie_form(GtkWidget *widget) {
+	UNUSED(widget);
+	GtkWidget *windowCategorieForm, *grid;
+	GtkWidget *name_field;
+	GtkWidget *button_OK, *button_exit;
+
+	windowCategorieForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	gtk_window_set_title(GTK_WINDOW(windowCategorieForm), "New category form");
+  //gtk_window_set_default_size(GTK_WINDOW(windowCategorieForm), 400,200);
+  gtk_window_set_position(GTK_WINDOW(windowCategorieForm), GTK_WIN_POS_CENTER);
+
+	grid = gtk_grid_new();
+	gtk_container_add(GTK_CONTAINER(windowCategorieForm), grid);
+
+	name_field = gtk_entry_new();
+
+	button_OK = gtk_button_new_with_label("OK");
+	g_signal_connect(G_OBJECT(button_OK), "clicked", G_CALLBACK(create_categorie), name_field);
+
+	button_exit = gtk_button_new_with_label("Return");
+	g_signal_connect(G_OBJECT(button_exit), "clicked", G_CALLBACK(close_window), windowCategorieForm);
+
+	gtk_grid_attach(GTK_GRID(grid), gtk_label_new("New category"), 0, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID(grid), name_field, 0, 1, 1, 1);
+	gtk_grid_attach(GTK_GRID(grid), button_OK, 0, 2, 1, 1);
+	gtk_grid_attach(GTK_GRID(grid), button_exit, 0, 3, 1, 1);
+
+	gtk_widget_show_all(windowCategorieForm);
+}
 
 void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries) {
   UNUSED(widget);
@@ -40,7 +76,8 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   day = malloc(sizeof(guint));
   char date[8];
 
-  const char *compte = bdd_get_iban_from_libelle(gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte)));
+  char *compte = malloc(sizeof(char)*34);
+	strcpy(compte, bdd_get_iban_from_libelle(gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte))));
   gtk_calendar_get_date(GTK_CALENDAR(entries->date), year, month, day);
   const char *libelle = gtk_entry_get_text(GTK_ENTRY(entries->libelle));
   const char *montant = gtk_entry_get_text(GTK_ENTRY(entries->montant));
@@ -65,6 +102,7 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   transaction->commentaire = commentaire;
 
   bdd_insert_transaction(transaction);
+	bdd_apply_transaction(transaction);
 }
 
 void create_transaction_form() {
@@ -118,7 +156,7 @@ void create_transaction_form() {
 
   // creation of the buttons
   button_create_categorie = gtk_button_new_with_label("New categorie");
-  g_signal_connect(GTK_BUTTON(button_create_categorie), "clicked", G_CALLBACK(create_categorie), NULL);
+  g_signal_connect(GTK_BUTTON(button_create_categorie), "clicked", G_CALLBACK(create_categorie_form), NULL);
 
   button_OK = gtk_button_new_with_label("Create transaction");
   g_signal_connect(GTK_BUTTON(button_OK), "clicked", G_CALLBACK(create_transaction), transaction_entries);
@@ -135,7 +173,6 @@ void create_transaction_form() {
   gtk_grid_attach(GTK_GRID(grid), libelle_field, 0, 5, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Amount"), 0, 6, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), montant_field, 0, 7, 1, 1);
-	gtk_grid_attach(GTK_GRID(grid), gtk_label_new("utiliser la ',' comme separation"), 1, 7, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commission"), 0, 8, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), commission_field, 0, 9, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Categorie"), 0, 10, 1, 1);

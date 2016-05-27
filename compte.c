@@ -343,7 +343,5 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   //ICI ON RECUPERE LES DONNEES DE TOUS LES COMPTES EXISTANT A UN MEC
 
-
-
   gtk_widget_show_all(window);
 }
