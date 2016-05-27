@@ -14,5 +14,6 @@ char** bdd_get_categorie();
 int bdd_login(char* request);
 int bdd_execute(char *sql);
 void bdd_init();
+char* bdd_get_iban_from_libelle(char* libelle);
 
 #endif

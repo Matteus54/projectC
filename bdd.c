@@ -272,6 +272,34 @@ int bdd_execute(char *sql) {
   }
 }
 
+char* bdd_get_iban_from_libelle(char* libelle) {
+  char *request = "SELECT iban FROM compte WHERE libelle = ?;";
+
+  sqlite3_stmt *stmt;
+  char *iban = malloc(sizeof(char)*34);
+  iban = "iban";
+
+  printf("%s\n", request);
+
+  if (sqlite3_prepare_v2(db, request, 350, &stmt, 0) == SQLITE_OK) {
+    sqlite3_bind_text(stmt, 1, libelle, -1, 0);
+    int res_stmt = sqlite3_step(stmt);
+
+    if(res_stmt == SQLITE_ROW) {
+      iban = (char*)sqlite3_column_text(stmt,0);
+    }
+  } else {
+    printf("SQL ERROR LOGIN\n");
+    return NULL;
+  }
+
+  sqlite3_finalize(stmt);
+  printf("%s\n", iban);
+
+  return iban;
+
+}
+
 /* Initialise la BDD lors du lancement de lapplication
   1- Creer le fichier banqueDB.db si il nexiste pas ou accede a la BDD si il existe
   2- Creer les tables si elles nexistent pas
@@ -314,8 +342,16 @@ void bdd_init() {
   request = "CREATE TABLE IF NOT EXISTS typeTransaction (type_trans VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255) NOT NULL)";
   bdd_execute(request);
 
-  request = "CREATE TABLE IF NOT EXISTS transactionCompte (id_transaction INTEGER PRIMARY KEY AUTOINCREMENT, libelle VARCHAR2(255) NOT NULL, montant NUMBER(12,2) NOT NULL,"\
-          "negatif BOOLEAN NOT NULL, commission NUMBER (6,2) NOT NULL DEFAULT '0', date DATE NOT NULL, commentaire VARCHAR2(255), type VARCHAR2(255) NOT NULL, compte_iban VARCHAR2(34) NOT NULL,"\
+  request = "CREATE TABLE IF NOT EXISTS transactionCompte ("\
+          "id_transaction INTEGER PRIMARY KEY AUTOINCREMENT,"\
+          "compte_iban VARCHAR2(34) NOT NULL,"\
+          "date DATE NOT NULL,"\
+          "libelle VARCHAR2(255) NOT NULL,"\
+          "montant NUMBER(12,2) NOT NULL,"\
+          "negatif BOOLEAN NOT NULL,"\
+          "commission NUMBER (6,2) NOT NULL DEFAULT '0',"\
+          "type VARCHAR2(255) NOT NULL,"\
+          "commentaire VARCHAR2(255),"\
           "CONSTRAINT transaction_compte_fk FOREIGN KEY (compte_iban) REFERENCES compte(iban),"\
           "CONSTRAINT transaction_type_fk FOREIGN KEY (type) REFERENCES typeTransaction(type_trans));";
   bdd_execute(request);
