@@ -5,45 +5,12 @@
 #include "gui.h"
 #include "bdd.h"
 #include "compte.h"
+#include "bdd_checks.h"
 
 extern char login[30];
 extern GtkWidget *activeWindow;
 extern GtkWidget *window;
 extern GtkWidget *grid;
-
-int isNumeric(const char *string, int isDecimal) {
-  int virgulePresente = 0;
-  int isDigit = 1;
-  int length = strlen(string);
-  if(length == 0) {
-    isDigit = 0;
-  }
-  int i;
-  for(i = 0; i < length; i++) {
-    char c = string[i];
-    if(!isdigit(c)) {
-      if(isDecimal) {
-        if(!(c == '.')) {
-          isDigit = 0;
-        }
-        else {
-          if(!virgulePresente) {
-            virgulePresente = 1;
-          }
-          else {
-            isDigit = 0;
-          }
-        }
-      }
-      else {
-        isDigit = 0;
-      }
-    }
-  }
-  return isDigit;
-}
-
-
 
 void create_account(GtkWidget *widget, gpointer* data) {
   UNUSED(widget);
@@ -154,10 +121,6 @@ void create_account(GtkWidget *widget, gpointer* data) {
   }
 }
 
-
-
-
-
 void create_account_form() {
   GtkWidget *windowAccountForm;
   GtkWidget *vbox, *livretVbox;
@@ -193,6 +156,8 @@ void create_account_form() {
     gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(type_livret_list),NULL,*listType);
     listType++;
   }
+
+  gtk_combo_box_set_active(GTK_COMBO_BOX(type_livret_list), 0);
 
   //liste déroulante du type
   gtk_box_pack_start(GTK_BOX(livretVbox), gtk_label_new("plafond"), 0, 0, 0);

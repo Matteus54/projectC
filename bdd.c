@@ -3,6 +3,7 @@
 #include <sqlite3.h>
 #include <string.h>
 #include "compte.h"
+#include "bdd_checks.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -113,6 +114,9 @@ char** bdd_get_type_livret() {
   }
 }
 
+char** bdd_get_categorie() {
+  return bdd_get_type_livret();
+}
 
 int bdd_login(char* request) {
   sqlite3_stmt *stmt;
@@ -173,7 +177,7 @@ void bdd_init() {
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS compte (iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34), solde NUMBER(12,2) NOT NULL,"\
-          "libelle VARCHAR2(255), booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
+          "libelle VARCHAR2(255) UNIQUE, booleanLivret BOOLEAN NOT NULL, proprietaire VARCHAR2(30) NOT NULL, CONSTRAINT compte_fk FOREIGN KEY (proprietaire) REFERENCES utilisateur(login));";
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS livret_type (type_livret VARCHAR2(255) PRIMARY KEY, libelle VARCHAR2(255));";
