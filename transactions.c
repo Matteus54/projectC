@@ -49,6 +49,9 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   const char *categorie = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->categorie));
   const char *commentaire = gtk_entry_get_text(GTK_ENTRY(entries->commentaire));
 
+  transaction_t *transaction = (transaction_t*)malloc(sizeof(transaction_t));
+
+  transaction->
 
   printf("%i %i %i\n", *year, *month, *day);
   printf("%s\n", compte);
