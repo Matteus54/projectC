@@ -123,9 +123,9 @@ void create_account(GtkWidget* widget, gpointer* data) {
           //CREATION DUN COMPTE
           char request[1024] = "INSERT INTO compte VALUES ('";
           strcat(request, iban_text);
-          strcat(request, "', '");
+          strcat(request, "', ");
           strcat(request, solde_text);
-          strcat(request, "', '");
+          strcat(request, ", '");
           strcat(request, libelle_text);
           strcat(request, "', 'FALSE', '");
           strcat(request, login);
@@ -261,42 +261,60 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   GtkWidget*         view;
   GtkTreeViewColumn* column;
 
-  model = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+  model = gtk_list_store_new(6, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING);
 
-  account_t **listType = bdd_get_list_account();
+  account_t **listCompte = bdd_get_list_account();
 
-  if(listType != NULL) {
-    account_t* account = (account_t*)malloc(sizeof(account_t));
-    while(*listType != NULL) {
-      account->iban = (*listType)->iban;
-      account->solde = (*listType)->solde;
-      account->libelle = (*listType)->libelle;
+  if(listCompte != NULL) {
+    while(*listCompte != NULL) {
+
       gtk_list_store_insert_with_values(model, NULL, -1,
-                                      0, account->iban,
-                                      1, account->solde,
-                                      2, account->libelle,
+                                      0, (*listCompte)->iban,
+                                      1, (*listCompte)->solde,
+                                      2, (*listCompte)->libelle,
                                       -1);
-      listType++;
+      listCompte++;
     }
   }
 
+  livret_t **listLivret = bdd_get_list_livret();
+
+  if(listLivret != NULL) {
+    while(*listLivret != NULL) {
+
+      gtk_list_store_insert_with_values(model, NULL, -1,
+                                      0, (*listLivret)->iban ,
+                                      1, (*listLivret)->solde,
+                                      2, (*listLivret)->libelle,
+                                      3, (*listLivret)->plafond,
+                                      4, (*listLivret)->interet,
+                                      5, (*listLivret)->type_livret,
+                                      -1);
+
+      listLivret++;
+    }
+  }
+
+
   view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
   g_object_unref(model);
-  column = gtk_tree_view_column_new_with_attributes("Iban",
-                                                  gtk_cell_renderer_text_new(),
-                                                  "text", 0,
-                                                  NULL);
-  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
-  column = gtk_tree_view_column_new_with_attributes("Solde",
-                                                  gtk_cell_renderer_text_new(),
-                                                  "text", 1,
-                                                  NULL);
+
+  column = gtk_tree_view_column_new_with_attributes("Iban", gtk_cell_renderer_text_new(), "text", 0, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
 
-  column = gtk_tree_view_column_new_with_attributes("Libelle",
-                                                  gtk_cell_renderer_text_new(),
-                                                  "text", 2,
-                                                  NULL);
+  column = gtk_tree_view_column_new_with_attributes("Solde", gtk_cell_renderer_text_new(), "text", 1, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  column = gtk_tree_view_column_new_with_attributes("Libelle", gtk_cell_renderer_text_new(), "text", 2, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  column = gtk_tree_view_column_new_with_attributes("Plafond", gtk_cell_renderer_text_new(), "text", 3, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  column = gtk_tree_view_column_new_with_attributes("Interet", gtk_cell_renderer_text_new(), "text", 4, NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  column = gtk_tree_view_column_new_with_attributes("Type", gtk_cell_renderer_text_new(), "text", 5, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
 
   GtkWidget *createCompteButton;

@@ -15,16 +15,16 @@ typedef struct {
 
 typedef struct {
   char *iban;
-  char *solde;
+  double solde;
   char *libelle;
 } account_t;
 
 typedef struct {
   char *iban;
-  char *solde;
+  double solde;
   char *libelle;
-  char *plafond;
-  char *interet;
+  double plafond;
+  double interet;
   char *type_livret;
 } livret_t;
 

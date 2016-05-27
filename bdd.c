@@ -39,36 +39,90 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
+livret_t** bdd_get_list_livret() {
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char request[1024] = "SELECT * FROM compte c NATURAL JOIN livret t WHERE proprietaire = '";
+  strcat(request, login);
+  strcat(request, "';");
+
+  livret_t **listSavingsAccount = (livret_t**) calloc(500, sizeof(livret_t*));
+  if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      livret_t* account = malloc(sizeof(livret_t));
+      account->iban = calloc(1,sizeof(account->iban));
+      account->libelle = calloc(1,sizeof(account->libelle));
+      account->type_livret = calloc(1,sizeof(account->type_livret));
+
+      while(res_stmt == SQLITE_ROW) {
+        char *iban = (char *) sqlite3_column_text(stmt, 0);
+        double solde = (double) sqlite3_column_double(stmt, 1);
+        char *libelle = (char*) sqlite3_column_text(stmt, 2);
+        double plafond = (double) sqlite3_column_double(stmt, 5);
+        double interet = (double) sqlite3_column_double(stmt, 6);
+        char *type_livret = (char*) sqlite3_column_text(stmt, 7);
+
+        memcpy(account->iban, iban, strlen(iban));
+        account->solde = solde;
+        memcpy(account->libelle, libelle, strlen(libelle));
+        account->plafond = plafond;
+        account->interet = interet;
+        memcpy(account->type_livret, type_livret, strlen(type_livret));
+
+
+
+        listSavingsAccount[i] = account;
+        i++;
+
+        res_stmt = sqlite3_step(stmt);
+      }
+
+      sqlite3_finalize(stmt);
+      return listSavingsAccount;
+    }
+    else {
+      printf("Unable to get list of savings accounts\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+  }
+  else {
+    printf("SQL ERROR GET SAVINGS ACCOUNTS\n");
+    return NULL;
+  }
+}
+
 account_t** bdd_get_list_account() {
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * FROM compte WHERE proprietaire = '";
   strcat(request, login);
-  strcat(request, "';");
+  strcat(request, "' AND booleanLivret = 'FALSE';");
 
-  account_t **listAccount = (account_t**) calloc(100, sizeof(account_t*));
+  account_t **listAccount = (account_t**) calloc(500, sizeof(account_t*));
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
+      account_t* account = malloc(sizeof(account_t));
+      account->iban = calloc(1,sizeof(account->iban));
+      account->libelle = calloc(1,sizeof(account->libelle));
+
       while(res_stmt == SQLITE_ROW) {
         char *iban = (char *) sqlite3_column_text(stmt, 0);
-        char *solde = (char *) sqlite3_column_text(stmt, 1);
+        double solde = (double) sqlite3_column_double(stmt, 1);
         char *libelle = (char*) sqlite3_column_text(stmt, 2);
 
-        account_t* account = malloc(sizeof(account_t*));
-        account->iban = malloc(sizeof(iban));
         memcpy(account->iban, iban, strlen(iban));
-        account->solde = malloc(sizeof(solde));
-        memcpy(account->solde, solde, strlen(solde));
-        account->libelle = malloc(sizeof(libelle));
+        account->solde = solde;
         memcpy(account->libelle, libelle, strlen(libelle));
 
         listAccount[i] = account;
 
-        printf("Account: %s | %s | %s \n", listAccount[i]->iban, listAccount[i]->solde, listAccount[i]->libelle);
         i++;
         res_stmt = sqlite3_step(stmt);
       }
+      sqlite3_finalize(stmt);
       return listAccount;
     }
     else {
