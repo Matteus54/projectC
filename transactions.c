@@ -59,8 +59,8 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   transaction->compte = compte;
   transaction->date = date;
   transaction->libelle = libelle;
-  transaction->montant = montant;
-  transaction->commission = commission;
+	transaction->montant = atof(montant);
+	transaction->commission = atof(commission);
   transaction->categorie = categorie;
   transaction->commentaire = commentaire;
 
@@ -135,6 +135,7 @@ void create_transaction_form() {
   gtk_grid_attach(GTK_GRID(grid), libelle_field, 0, 5, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Amount"), 0, 6, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), montant_field, 0, 7, 1, 1);
+	gtk_grid_attach(GTK_GRID(grid), gtk_label_new("utiliser la ',' comme separation"), 1, 7, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commission"), 0, 8, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), commission_field, 0, 9, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Categorie"), 0, 10, 1, 1);

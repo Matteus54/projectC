@@ -19,8 +19,8 @@ typedef struct {
   char *compte;
   char *date;
   char *libelle;
-  double montant;
-  double commission;
+  float montant;
+  float commission;
   char *categorie;
   char *commentaire;
   //char *devise;
