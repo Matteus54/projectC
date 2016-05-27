@@ -236,9 +236,10 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   //AJOUT SCROLLBAR
   scrollbar = gtk_scrolled_window_new(NULL, NULL);
-  gtk_container_add(GTK_CONTAINER(window),scrollbar);
+  //gtk_container_add(GTK_CONTAINER(window),scrollbar);
+  gtk_container_add(GTK_CONTAINER(grid),scrollbar);
 
-  gtk_container_add(GTK_CONTAINER(scrollbar), grid);
+  //gtk_container_add(GTK_CONTAINER(scrollbar), grid);
 
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
@@ -335,8 +336,8 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   widget_set_margins(createCompteButton, 0, 5, 0, 0);
   widget_set_margins(button_retour, 0, 5, 0, 0);
 
-  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 10);
+  gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 10);
   gtk_grid_attach(GTK_GRID(grid), createCompteButton, 1, 0, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);
 
