@@ -7,7 +7,9 @@
 #include "compte.h"
 
 extern char login[30];
-
+extern GtkWidget *activeWindow;
+extern GtkWidget *window;
+extern GtkWidget *grid;
 
 int isNumeric(const char *string, int isDecimal) {
   int virgulePresente = 0;
@@ -43,7 +45,7 @@ int isNumeric(const char *string, int isDecimal) {
 
 
 
-void create_account(GtkWidget* widget, gpointer* data) {
+void create_account(GtkWidget *widget, gpointer* data) {
   UNUSED(widget);
 
   account_entry_creation_t* account_entries = (account_entry_creation_t*) data;
@@ -236,21 +238,19 @@ void create_account_form() {
 void show_compte (GtkWidget *widget, gpointer* data) {
   UNUSED(widget);
   UNUSED(data);
-  GtkWidget *windowCompte;
-  GtkWidget *gridBox;
   GtkWidget *scrollbar;
 
-  windowCompte = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(windowCompte), "Compte");
-  gtk_window_set_default_size(GTK_WINDOW(windowCompte), 800,600);
-  gtk_window_set_position(GTK_WINDOW(windowCompte), GTK_WIN_POS_CENTER);
+  clean_window();
+
+  gtk_window_set_title(GTK_WINDOW(window), "Compte");
+  gtk_window_set_default_size(GTK_WINDOW(window), 800,600);
+  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
   //AJOUT SCROLLBAR
   scrollbar = gtk_scrolled_window_new(NULL, NULL);
-  gtk_container_add(GTK_CONTAINER(windowCompte),scrollbar);
+  gtk_container_add(GTK_CONTAINER(window),scrollbar);
 
-  gridBox = gtk_grid_new();
-  gtk_container_add(GTK_CONTAINER(scrollbar), gridBox);
+  gtk_container_add(GTK_CONTAINER(scrollbar), grid);
 
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
@@ -299,14 +299,23 @@ void show_compte (GtkWidget *widget, gpointer* data) {
                                                   NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
 
-  GtkWidget *createCompteButton;
+  GtkWidget *createCompteButton, *button_retour;
+
   createCompteButton = gtk_button_new_with_label("Create new account");
   g_signal_connect(createCompteButton, "clicked", G_CALLBACK(create_account_form), NULL);
 
-  gtk_grid_attach(GTK_GRID(gridBox), view, 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(gridBox), createCompteButton, 1, 1, 1, 1);
+  button_retour = gtk_button_new_with_label("Retour");
+  g_signal_connect(button_retour, "clicked", G_CALLBACK(main_window), NULL);
+
+  widget_set_margins(createCompteButton, 0, 5, 0, 0);
+  widget_set_margins(button_retour, 0, 5, 0, 0);
+
+  gtk_grid_attach(GTK_GRID(grid), createCompteButton, 0, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), view, 0, 1, 2, 1);
+
   //ICI ON RECUPERE LES DONNEES DE TOUS LES COMPTES EXISTANT A UN MEC
 
 
-  gtk_widget_show_all(windowCompte);
+  gtk_widget_show_all(window);
 }

@@ -11,14 +11,15 @@
 
 
 GtkApplication *app;
+GtkWidget *activeWindow; //gardera un pointeur vers la fenetre actuelle
 GtkWidget *window;
 GtkWidget *grid;
 
 void widget_set_margins(GtkWidget *widget, int top, int bottom, int left, int right) {
   gtk_widget_set_margin_top(widget, top);
   gtk_widget_set_margin_bottom(widget, bottom);
-  gtk_widget_set_margin_start(widget, left);
-  gtk_widget_set_margin_end(widget, right);
+  gtk_widget_set_margin_left(widget, left);
+  gtk_widget_set_margin_right(widget, right);
 }
 
 void widget_set_margin(GtkWidget *widget, int margin) {
@@ -55,7 +56,7 @@ char* file_browser() {
   char *filename = NULL;
 
   dialog = gtk_file_chooser_dialog_new ("Open File",
-                                        GTK_WINDOW(window),
+                                        GTK_WINDOW(activeWindow),
                                         action,
                                         ("Cancel"),
                                         GTK_RESPONSE_CANCEL,
@@ -84,7 +85,7 @@ void alert_dialog(gchar *text) {
    /* Create the widgets */
 //   dialog = gtk_dialog_new_with_buttons("Alert", window, ("OK"), GTK_RESPONSE_NONE, NULL);
    dialog = gtk_dialog_new_with_buttons ("Alert",
-                                         GTK_WINDOW(window),
+                                         GTK_WINDOW(activeWindow),
                                          GTK_DIALOG_DESTROY_WITH_PARENT,
                                          ("OK"),
                                          GTK_RESPONSE_NONE,
@@ -133,6 +134,7 @@ void main_window() {
 void main_handler(GtkApplication *app) {
   /* Definition et personnalisation de la fenetre */
   window = gtk_application_window_new(app);
+  activeWindow = window;
   gtk_window_set_default_size(GTK_WINDOW(window), 640,480);
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
