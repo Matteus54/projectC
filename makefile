@@ -1,6 +1,6 @@
 CC = gcc
-SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c bdd_checks.c
-OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o bdd_checks.o
+SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c bdd_checks.c bdd_inserts.c
+OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o bdd_checks.o bdd_inserts.o
 EXEC = main
 
 GTK_CFLAGS = $$(pkg-config --cflags gtk+-3.0)

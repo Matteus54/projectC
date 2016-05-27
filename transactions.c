@@ -5,6 +5,7 @@
 #include "gui.h"
 #include "compte.h"
 #include "bdd.h"
+#include "bdd_inserts.h"
 #include "transactions.h"
 
 extern GtkWidget *app;
@@ -37,12 +38,10 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   year = malloc(sizeof(guint));
   month = malloc(sizeof(guint));
   day = malloc(sizeof(guint));
+  char date[8];
 
-  printf("hello\n");
-
-  const char *compte = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte));
+  const char *compte = bdd_get_iban_from_libelle(gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte)));
   gtk_calendar_get_date(GTK_CALENDAR(entries->date), year, month, day);
-  (*month)++;
   const char *libelle = gtk_entry_get_text(GTK_ENTRY(entries->libelle));
   const char *montant = gtk_entry_get_text(GTK_ENTRY(entries->montant));
   const char *commission = gtk_entry_get_text(GTK_ENTRY(entries->commission));
@@ -51,12 +50,21 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 
   transaction_t *transaction = (transaction_t*)malloc(sizeof(transaction_t));
 
-  transaction->
+  (*month)++;
+  if (*month < 10)
+    sprintf(date, "%i0%i%i", *year, *month, *day);
+  else
+    sprintf(date, "%i%i%i", *year, *month, *day);
 
-  printf("%i %i %i\n", *year, *month, *day);
-  printf("%s\n", compte);
-  printf("%s\n", libelle);
-  printf("%s\n", commission);
+  transaction->compte = compte;
+  transaction->date = date;
+  transaction->libelle = libelle;
+  transaction->montant = montant;
+  transaction->commission = commission;
+  transaction->categorie = categorie;
+  transaction->commentaire = commentaire;
+
+  bdd_insert_transaction(transaction);
 }
 
 void create_transaction_form() {
