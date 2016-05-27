@@ -4,6 +4,7 @@
 #include <string.h>
 #include "compte.h"
 #include "transactions.h"
+#include "bdd_checks.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -40,19 +41,21 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
-transaction_t** bdd_get_list_transaction (char* iban) {
+transaction_t** bdd_get_list_transaction () {
+  //char *iban en parametr
+  /*
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * from transactionCompte WHERE compte_iban = '";
   strcat(request, iban);
   strcat(request, "';");
-  printf("Request: %s\n", request);
 
   transaction_t **listTransaction = (transaction_t**) calloc(500, sizeof(transaction_t*));
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
       transaction_t* transaction = malloc(sizeof(transaction_t));
+
       transaction->libelle = calloc(1,sizeof(transaction->libelle));
       transaction->negatif = calloc(1,sizeof(transaction->negatif));
       transaction->date = calloc(1,sizeof(transaction->libelle));
@@ -99,6 +102,8 @@ transaction_t** bdd_get_list_transaction (char* iban) {
     printf("SQL ERROR GET TRANSACTIONS\n");
     return NULL;
   }
+  */
+  return NULL;
 }
 
 livret_t** bdd_get_list_livret() {
@@ -226,6 +231,9 @@ char** bdd_get_type_livret() {
   }
 }
 
+char** bdd_get_categorie() {
+  return bdd_get_type_livret();
+}
 
 int bdd_login(char* request) {
   sqlite3_stmt *stmt;

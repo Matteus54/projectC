@@ -10,6 +10,7 @@ transaction_t** bdd_get_list_transaction();
 livret_t** bdd_get_list_livret();
 account_t** bdd_get_list_account();
 char** bdd_get_type_livret();
+char** bdd_get_categorie();
 int bdd_login(char* request);
 int bdd_execute(char *sql);
 void bdd_init();
