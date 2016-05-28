@@ -9,6 +9,8 @@
 #define UNUSED(p) ((void)(p))
 
 static sqlite3 *db;
+
+
 static char *zErrMsg = 0;
 static int rc;
 static char *request;
@@ -26,6 +28,8 @@ int hash (const char* word) {
     {
         hash = 31*hash + word[i];
     }
+
+
     return hash % MUST_BE_LESS_THAN;
 }
 
@@ -278,28 +282,25 @@ int bdd_execute(char *sql) {
   }
 }
 
-const char* bdd_get_iban_from_libelle(char* libelle) {
-  char *request = "SELECT iban FROM compte WHERE libelle = ?;";
-
+char* bdd_get_iban_from_libelle(char* libelle) {
+  char request[1024] = "SELECT iban FROM compte WHERE libelle = '";
+  strcat(request, libelle);
+  strcat(request, "';");
+  char *iban = malloc(sizeof(char)*34);
   sqlite3_stmt *stmt;
-  const char *iban = malloc(sizeof(char)*34);
-  iban = "iban";
 
-  if (sqlite3_prepare_v2(db, request, 350, &stmt, 0) == SQLITE_OK) {
-    sqlite3_bind_text(stmt, 1, libelle, -1, 0);
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
-
     if(res_stmt == SQLITE_ROW) {
-      iban = (const char*)sqlite3_column_text(stmt,0);
+      iban = (char*)sqlite3_column_text(stmt,0);
     }
+    sqlite3_finalize(stmt);
+    return iban;
   } else {
-    printf("SQL ERROR LOGIN\n");
+    printf("SQL ERROR GET IBAN FROM LIBELLE\n");
+    sqlite3_finalize(stmt);
     return NULL;
   }
-
-  sqlite3_finalize(stmt);
-
-  return iban;
 }
 
 /* Initialise la BDD lors du lancement de lapplication
@@ -366,6 +367,7 @@ void bdd_init() {
   bdd_execute(request);
   request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Transfert');";
   bdd_execute(request);
+
 
   request = "CREATE TABLE IF NOT EXISTS transactionCompte ("\
           "id_transaction INTEGER PRIMARY KEY AUTOINCREMENT,"\
