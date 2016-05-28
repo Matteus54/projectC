@@ -11,7 +11,6 @@ void bdd_insert_categorie(char *categorie) {
 }
 
 
-
 void bdd_apply_transaction(transaction_t *transaction) {
   char buffer[34];
   char request[1024] = "UPDATE compte SET solde = (solde + CAST('";

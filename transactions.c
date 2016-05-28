@@ -93,7 +93,8 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 	day = malloc(sizeof(guint));
 	gtk_calendar_get_date(GTK_CALENDAR(date), year, month, day);
 
-  const char *compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
+	char *compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
+	const char *iban = bdd_get_iban_from_libelle(compte_text);
   const char *libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
 	const char *montant_text = gtk_entry_get_text(GTK_ENTRY(montant));
 	const char *commission_text = gtk_entry_get_text(GTK_ENTRY(commission));
@@ -119,7 +120,7 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 					char request[1024] = "INSERT INTO transactionCompte "\
 				  "(compte_iban, date, libelle, montant, negatif, commission, type, commentaire) "\
 				  "VALUES('";
-				  strcat(request, compte_text);
+				  strcat(request, iban);
 				  strcat(request, "', '");
 				  strcat(request, date_text);
 				  strcat(request, "', '");
@@ -135,7 +136,7 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 				  strcat(request, "', '");
 				  strcat(request, commentaire_text);
 				  strcat(request, "');");
-					
+
 				  bdd_execute(request);
 				}
 				else {

@@ -134,12 +134,26 @@ void tree_selection(GtkTreeSelection *selection, gpointer data) {
   if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
       gtk_tree_model_get (model, &iter, 0, &iban, -1);
 
-      transaction_t** listTransaction = bdd_get_list_transaction(iban);
-      UNUSED(listTransaction);
-      UNUSED(modelTransaction);
-      //gtk_list_store_insert_with_values(modelTransaction, NULL, -1,  0, iban, -1);
-      printf("Iban: %s\n", iban);
+      gtk_list_store_clear(modelTransaction);
+
+      transaction_t **listTransaction = bdd_get_list_transaction(iban);
+
+      if(listTransaction != NULL) {
+        while(*listTransaction != NULL) {
+          gtk_list_store_insert_with_values(modelTransaction, NULL, -1,
+                                          0, (*listTransaction)->id,
+                                          1, (*listTransaction)->date,
+                                          2, (*listTransaction)->libelle,
+                                          3, (*listTransaction)->montant,
+                                          4, (*listTransaction)->commission,
+                                          5, (*listTransaction)->categorie,
+                                          6, (*listTransaction)->commentaire,
+                                          -1);
+          listTransaction++;
+        }
+      }
     }
+
 }
 
 
@@ -226,7 +240,7 @@ void create_account_form() {
 void show_compte (GtkWidget *widget, gpointer* data) {
   UNUSED(widget);
   UNUSED(data);
-  GtkWidget *scrollbar;
+  //GtkWidget *scrollbar;
 
   clean_window();
 
@@ -235,13 +249,13 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
   //AJOUT SCROLLBAR
-  scrollbar = gtk_scrolled_window_new(NULL, NULL);
+  //scrollbar = gtk_scrolled_window_new(NULL, NULL);
   //gtk_container_add(GTK_CONTAINER(window),scrollbar);
-  gtk_container_add(GTK_CONTAINER(grid),scrollbar);
+  //gtk_container_add(GTK_CONTAINER(grid),scrollbar);
 
   //gtk_container_add(GTK_CONTAINER(scrollbar), grid);
 
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  //gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
 
 
@@ -254,7 +268,7 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   GtkTreeSelection*  select;
 
   model = gtk_list_store_new(6, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING);
-  modelTransaction = gtk_list_store_new(8, G_TYPE_INT, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_BOOLEAN, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+  modelTransaction = gtk_list_store_new(7, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_STRING);
 
   account_t **listCompte = bdd_get_list_account();
   if(listCompte != NULL) {
@@ -310,19 +324,17 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   column = gtk_tree_view_column_new_with_attributes("Id", gtk_cell_renderer_text_new(), "text", 0, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
-  column = gtk_tree_view_column_new_with_attributes("libelle", gtk_cell_renderer_text_new(), "text", 1, NULL);
+  column = gtk_tree_view_column_new_with_attributes("date", gtk_cell_renderer_text_new(), "text", 1, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
-  column = gtk_tree_view_column_new_with_attributes("montant", gtk_cell_renderer_text_new(), "text", 2, NULL);
+  column = gtk_tree_view_column_new_with_attributes("libelle", gtk_cell_renderer_text_new(), "text", 2, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
-  column = gtk_tree_view_column_new_with_attributes("negatif", gtk_cell_renderer_text_new(), "text", 3, NULL);
+  column = gtk_tree_view_column_new_with_attributes("montant", gtk_cell_renderer_text_new(), "text", 3, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
   column = gtk_tree_view_column_new_with_attributes("commission", gtk_cell_renderer_text_new(), "text", 4, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
-  column = gtk_tree_view_column_new_with_attributes("date", gtk_cell_renderer_text_new(), "text", 5, NULL);
+  column = gtk_tree_view_column_new_with_attributes("Categorie", gtk_cell_renderer_text_new(), "text", 5, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
   column = gtk_tree_view_column_new_with_attributes("commentaire", gtk_cell_renderer_text_new(), "text", 6, NULL);
-  gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
-  column = gtk_tree_view_column_new_with_attributes("type", gtk_cell_renderer_text_new(), "text", 7, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
 
   GtkWidget *createCompteButton, *button_retour;
