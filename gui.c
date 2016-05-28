@@ -11,7 +11,6 @@
 
 
 GtkApplication *app;
-GtkWidget *activeWindow; //gardera un pointeur vers la fenetre actuelle
 GtkWidget *window;
 GtkWidget *grid;
 
@@ -56,7 +55,7 @@ char* file_browser() {
   char *filename = NULL;
 
   dialog = gtk_file_chooser_dialog_new ("Open File",
-                                        GTK_WINDOW(activeWindow),
+                                        GTK_WINDOW(window),
                                         action,
                                         ("Cancel"),
                                         GTK_RESPONSE_CANCEL,
@@ -79,7 +78,7 @@ char* file_browser() {
   return(filename);
 }
 
-void alert_dialog(gchar *text) {
+void alert_dialog(GtkWidget *activeWindow, gchar *text) {
    GtkWidget *dialog, *textAlert, *content_area;
 
    /* Create the widgets */
@@ -103,6 +102,11 @@ void alert_dialog(gchar *text) {
    gtk_container_add (GTK_CONTAINER (content_area), textAlert);
    gtk_widget_show_all(dialog);
    gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
+void alert_dialog_then_close(GtkWidget *activeWindow, gchar *text) {
+  alert_dialog(activeWindow, text);
+  close_window(NULL, activeWindow);
 }
 
 void main_window() {
@@ -134,7 +138,6 @@ void main_window() {
 void main_handler(GtkApplication *app) {
   /* Definition et personnalisation de la fenetre */
   window = gtk_application_window_new(app);
-  activeWindow = window;
   gtk_window_set_default_size(GTK_WINDOW(window), 640,480);
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 

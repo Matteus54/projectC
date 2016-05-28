@@ -1,6 +1,6 @@
 CC = gcc
-SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c bdd_checks.c bdd_updates.c
-OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o bdd_checks.o bdd_updates.o
+SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c bdd_checks.c bdd_updates.c import_releve_from_csv.c
+OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o bdd_checks.o bdd_updates.o import_releve_from_csv.o
 
 TEST_SRC = test.c
 TEST_OBJ = test.o
@@ -12,7 +12,7 @@ GTK_LDFLAGS = $$(pkg-config --libs gtk+-3.0)
 
 SQLITE_FLAGS = -lsqlite3
 
-ERROR_CFLAGS = -Wall -W
+ERROR_CFLAGS = -Wall -W -g
 
 LDFLAGS = $(ERROR_CFLAGS)
 CFLAGS = $(ERROR_CFLAGS) $(GTK_CFLAGS)

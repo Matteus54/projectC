@@ -28,8 +28,6 @@ int hash (const char* word) {
     {
         hash = 31*hash + word[i];
     }
-
-
     return hash % MUST_BE_LESS_THAN;
 }
 
@@ -133,17 +131,19 @@ transaction_t** bdd_get_list_transaction (char *iban) {
 }
 
 livret_t** bdd_get_list_livret() {
+  printf("helloe\n");
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * FROM compte c NATURAL JOIN livret t WHERE proprietaire = '";
   strcat(request, login);
   strcat(request, "';");
 
-  livret_t **listSavingsAccount = (livret_t**) calloc(500, sizeof(livret_t*));
+  livret_t **listSavingsAccount = (livret_t**) calloc(100, sizeof(livret_t*));
+
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      livret_t* account = malloc(sizeof(livret_t));
+      livret_t* account = (livret_t*) malloc(sizeof(livret_t));
       account->iban = calloc(1,sizeof(account->iban));
       account->libelle = calloc(1,sizeof(account->libelle));
       account->type_livret = calloc(1,sizeof(account->type_livret));

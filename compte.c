@@ -68,27 +68,26 @@ void create_account(GtkWidget *widget, gpointer* data) {
                   strcat(requestSavings, "');");
 
                   if(bdd_execute(requestSavings)) {
-                    alert_dialog("Savings account created !");
-                    close_window(NULL, window);
+                    alert_dialog_then_close(window, "Savings account created !");
                   }
                   else {
-                    alert_dialog("ERROR: Can't create savings account");
+                    alert_dialog(window, "ERROR: Can't create savings account");
                   }
                 }
                 else {
-                  alert_dialog("Can't create the account before the savings account");
+                  alert_dialog(window, "Can't create the account before the savings account");
                 }
               }
               else {
-                alert_dialog("You must choose a savings account type");
+                alert_dialog(window, "You must choose a savings account type");
               }
             }
             else {
-              alert_dialog("Interet is not a numeric");
+              alert_dialog(window, "Interet is not a numeric");
             }
           }
           else {
-            alert_dialog("Plafond is not a numeric");
+            alert_dialog(window, "Plafond is not a numeric");
           }
         }
         else {
@@ -104,28 +103,28 @@ void create_account(GtkWidget *widget, gpointer* data) {
           strcat(request, "');");
 
           if(bdd_execute(request)) {
-            alert_dialog("Account has been created !");
-            close_window(NULL, window);
+            alert_dialog_then_close(window, "Account has been created !");
           }
           else {
-            alert_dialog("ERROR: Can't create the account");
+            alert_dialog(window, "ERROR: Can't create the account");
           }
         }
       }
       else {
-        alert_dialog("Error: Libelle must be between 0 and 255");
+        alert_dialog(window, "Error: Libelle must be between 0 and 255");
       }
     }
     else {
-      alert_dialog("Solde is not numeric");
+      alert_dialog(window, "Solde is not numeric");
     }
   }
   else {
-    alert_dialog("Error: IBAN must be between 14 and 34");
+    alert_dialog(window, "Error: IBAN must be between 14 and 34");
   }
 }
 
 void tree_selection(GtkTreeSelection *selection, gpointer data) {
+  printf("hello\n");
   UNUSED(data);
   GtkTreeIter iter;
   GtkTreeModel* model;
@@ -238,6 +237,8 @@ void create_account_form() {
 
 
 void show_compte (GtkWidget *widget, gpointer* data) {
+  printf("hello 0\n");
+
   UNUSED(widget);
   UNUSED(data);
   //GtkWidget *scrollbar;
@@ -249,11 +250,7 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
   //AJOUT SCROLLBAR
-  //scrollbar = gtk_scrolled_window_new(NULL, NULL);
-  //gtk_container_add(GTK_CONTAINER(window),scrollbar);
-  //gtk_container_add(GTK_CONTAINER(grid),scrollbar);
-
-  //gtk_container_add(GTK_CONTAINER(scrollbar), grid);
+  //GtkWidget *scrollbar = gtk_scrolled_window_new(NULL, NULL);
 
   //gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
@@ -270,9 +267,13 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   model = gtk_list_store_new(6, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING);
   modelTransaction = gtk_list_store_new(7, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_STRING);
 
+  printf("hello 1\n");
   account_t **listCompte = bdd_get_list_account();
   if(listCompte != NULL) {
     while(*listCompte != NULL) {
+      printf("%s\n", (*listCompte)->iban);
+      printf("%f\n", (*listCompte)->solde);
+      printf("%s\n\n", (*listCompte)->libelle);
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listCompte)->iban,
                                       1, (*listCompte)->solde,
@@ -282,9 +283,16 @@ void show_compte (GtkWidget *widget, gpointer* data) {
     }
   }
 
+  printf("hello 3\n");
   livret_t **listLivret = bdd_get_list_livret();
   if(listLivret != NULL) {
     while(*listLivret != NULL) {
+      printf("%s\n", (*listLivret)->iban);
+      printf("%f\n", (*listLivret)->solde);
+      printf("%s\n", (*listLivret)->libelle);
+      printf("%f\n", (*listLivret)->plafond);
+      printf("%f\n", (*listLivret)->interet);
+      printf("%s\n\n", (*listLivret)->type_livret);
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listLivret)->iban ,
                                       1, (*listLivret)->solde,
@@ -296,7 +304,7 @@ void show_compte (GtkWidget *widget, gpointer* data) {
       listLivret++;
     }
   }
-
+  printf("hello 4\n");
 
   view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
   g_object_unref(model);
@@ -313,6 +321,8 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
   column = gtk_tree_view_column_new_with_attributes("Type", gtk_cell_renderer_text_new(), "text", 5, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
+
+  printf("hello 5\n");
 
   //ONCLICK sur un compte, on applique la fonction tree_selection
   select = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
@@ -337,6 +347,8 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   column = gtk_tree_view_column_new_with_attributes("commentaire", gtk_cell_renderer_text_new(), "text", 6, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
 
+  printf("hello 6\n");
+
   GtkWidget *createCompteButton, *button_retour;
 
   createCompteButton = gtk_button_new_with_label("Create new account");
@@ -349,6 +361,8 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   widget_set_margins(button_retour, 0, 5, 0, 0);
 
   gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 10);
+  //gtk_container_add(GTK_CONTAINER(scrollbar), viewTransaction);
+  //gtk_grid_attach(GTK_GRID(grid), scrollbar, 2, 0, 1, 10);
   gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 10);
   gtk_grid_attach(GTK_GRID(grid), createCompteButton, 1, 0, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);

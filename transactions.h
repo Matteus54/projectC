@@ -12,6 +12,7 @@ typedef struct {
   GtkWidget *commission;
   GtkWidget *categorie;
   GtkWidget *commentaire;
+  GtkWidget *window;
   //GtkWidget *devise;
 } transaction_entry_creation_t;
 
