@@ -13,7 +13,7 @@ extern GtkWidget *activeWindow;
 extern GtkWidget *window;
 extern GtkWidget *grid;
 
-const char* getfield(char* line, int num) // a reecrire (copier coller d'internet)
+const char* getfield(const char* line, int num) // a reecrire (copier coller d'internet)
 {
 	char copy[1024];
 
@@ -104,7 +104,8 @@ transaction_t* extract_transaction_from_form(transaction_entry_creation_t *entri
 }
 
 transaction_t* extract_transaction_from_import(transaction_entry_creation_t *entries) {
-
+	UNUSED(entries);
+	return NULL;
 }
 
 
@@ -198,7 +199,7 @@ void create_transaction_form() {
   gtk_widget_show_all(windowTransactionForm);
 }
 
-void valider_import_transaction(char* iban, char* date, char* libelle, char* montant, char* commission) {
+void valider_import_transaction(const char* iban,const char* date,const char* libelle,const char* montant,const char* commission) {
 	GtkWidget *windowTransactionForm;
   GtkWidget *grid;
   GtkWidget *categorie_list ,*commentaire_field;
