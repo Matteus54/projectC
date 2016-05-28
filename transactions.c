@@ -68,38 +68,50 @@ void create_categorie_form(GtkWidget *widget) {
 	gtk_widget_show_all(windowCategorieForm);
 }
 
-void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries) {
-  UNUSED(widget);
-  guint *year, *month, *day;
-  year = malloc(sizeof(guint));
-  month = malloc(sizeof(guint));
-  day = malloc(sizeof(guint));
-  char date[8];
+transaction_t* extract_transaction_from_form(transaction_entry_creation_t *entries) {
+	guint *year, *month, *day;
+	year = malloc(sizeof(guint));
+	month = malloc(sizeof(guint));
+	day = malloc(sizeof(guint));
+	char date[8];
 
-  char *compte = malloc(sizeof(char)*34);
+	char *compte = malloc(sizeof(char)*34);
 	strcpy(compte, bdd_get_iban_from_libelle(gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte))));
-  gtk_calendar_get_date(GTK_CALENDAR(entries->date), year, month, day);
-  const char *libelle = gtk_entry_get_text(GTK_ENTRY(entries->libelle));
-  const char *montant = gtk_entry_get_text(GTK_ENTRY(entries->montant));
-  const char *commission = gtk_entry_get_text(GTK_ENTRY(entries->commission));
-  const char *categorie = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->categorie));
-  const char *commentaire = gtk_entry_get_text(GTK_ENTRY(entries->commentaire));
+	gtk_calendar_get_date(GTK_CALENDAR(entries->date), year, month, day);
+	const char *libelle = gtk_entry_get_text(GTK_ENTRY(entries->libelle));
+	const char *montant = gtk_entry_get_text(GTK_ENTRY(entries->montant));
+	const char *commission = gtk_entry_get_text(GTK_ENTRY(entries->commission));
+	const char *categorie = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->categorie));
+	const char *commentaire = gtk_entry_get_text(GTK_ENTRY(entries->commentaire));
 
-  transaction_t *transaction = (transaction_t*)malloc(sizeof(transaction_t));
+	transaction_t *transaction = (transaction_t*)malloc(sizeof(transaction_t));
 
-  (*month)++;
-  if (*month < 10)
-    sprintf(date, "%i0%i%i", *year, *month, *day);
-  else
-    sprintf(date, "%i%i%i", *year, *month, *day);
+	(*month)++;
+	if (*month < 10)
+		sprintf(date, "%i0%i%i", *year, *month, *day);
+	else
+		sprintf(date, "%i%i%i", *year, *month, *day);
 
-  transaction->compte = compte;
-  transaction->date = date;
-  transaction->libelle = libelle;
+	transaction->compte = compte;
+	transaction->date = date;
+	transaction->libelle = libelle;
 	transaction->montant = atof(montant);
 	transaction->commission = atof(commission);
-  transaction->categorie = categorie;
-  transaction->commentaire = commentaire;
+	transaction->categorie = categorie;
+	transaction->commentaire = commentaire;
+
+	return transaction;
+}
+
+transaction_t* extract_transaction_from_import(transaction_entry_creation_t *entries) {
+
+}
+
+
+void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries) {
+	UNUSED(widget);
+
+	transaction_t *transaction = extract_transaction_from_form(entries);
 
   bdd_insert_transaction(transaction);
 	bdd_apply_transaction(transaction);
@@ -186,25 +198,104 @@ void create_transaction_form() {
   gtk_widget_show_all(windowTransactionForm);
 }
 
+void valider_import_transaction(char* iban, char* date, char* libelle, char* montant, char* commission) {
+	GtkWidget *windowTransactionForm;
+  GtkWidget *grid;
+  GtkWidget *categorie_list ,*commentaire_field;
+	GtkWidget *date_label, *libelle_label, *montant_label, *commission_label;
+  GtkWidget *button_create_categorie, *button_OK, *button_exit;
+
+  windowTransactionForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(windowTransactionForm), "Creation d'une transaction'");
+  gtk_window_set_default_size(GTK_WINDOW(windowTransactionForm), 400,200);
+  gtk_window_set_position(GTK_WINDOW(windowTransactionForm), GTK_WIN_POS_CENTER);
+
+  grid = gtk_grid_new();
+  gtk_container_add(GTK_CONTAINER(windowTransactionForm), grid);
+
+  commentaire_field = gtk_entry_new();
+  categorie_list = gtk_combo_box_text_new();
+
+	date_label = gtk_label_new(date);
+	libelle_label = gtk_label_new(libelle);
+	montant_label = gtk_label_new(montant);
+	commission_label = gtk_label_new(commission);
+
+  //ajout des choix dans les listes deroulante
+  char **listCategorie = bdd_get_categorie();
+  while(*listCategorie != NULL) {
+    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(categorie_list),NULL,*listCategorie);
+    listCategorie++;
+  }
+
+  gtk_combo_box_set_active(GTK_COMBO_BOX(categorie_list), 0);
+
+
+  //declaration de la structure qui sert de formumlaire
+  transaction_entry_creation_t *transaction_entries = malloc(sizeof(transaction_entry_creation_t));
+	transaction_entries->compte = gtk_label_new(iban);
+  transaction_entries->date = date_label;
+  transaction_entries->libelle = libelle_label;
+  transaction_entries->montant = montant_label;
+  transaction_entries->commission = commission_label;
+  transaction_entries->categorie = categorie_list;
+  transaction_entries->commentaire = commentaire_field;
+
+  // creation of the buttons
+  button_create_categorie = gtk_button_new_with_label("New categorie");
+  g_signal_connect(GTK_BUTTON(button_create_categorie), "clicked", G_CALLBACK(create_categorie_form), NULL);
+
+  button_OK = gtk_button_new_with_label("Create transaction");
+  g_signal_connect(GTK_BUTTON(button_OK), "clicked", G_CALLBACK(create_transaction), transaction_entries);
+
+  button_exit = gtk_button_new_with_label("Exit form");
+  g_signal_connect(GTK_BUTTON(button_exit), "clicked", G_CALLBACK(close_window), windowTransactionForm);
+
+  // packing GUI
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Date"), 0, 2, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), date_label, 0, 3, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Libelle"), 0, 4, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), libelle_label, 0, 5, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Amount"), 0, 6, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), montant_label, 0, 7, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commission"), 0, 8, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), commission_label, 0, 9, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Categorie"), 0, 10, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), categorie_list, 0, 11, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_create_categorie, 1, 11, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commentaire"), 0, 12, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), commentaire_field, 0, 13, 2, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_OK, 0, 14, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_exit, 1, 14, 1, 1);
+
+  gtk_widget_show_all(windowTransactionForm);
+}
 
 void import_releve() {
   FILE *releve;
   char* filename = file_browser(activeWindow);
-  char line[1024];
+  char line[1024], iban[34];
 
   printf("path to selected releve : %s\n", filename);
 
   releve = fopen(filename, "r");
 
-  fgets(line, 1024, releve); //on saute la premiere ligne (celle avec les titres des colonnes)
-  while(fgets(line, 1024, releve)) {
+	fgets(iban, 34, releve);
 
+  fgets(line, 1024, releve); //on saute la ligne des titres des colonnes
+  while(fgets(line, 1024, releve)) {
+		valider_import_transaction(iban,\
+															getfield(line, 1),\
+															getfield(line, 3),\
+															getfield(line, 4),\
+															getfield(line, 5));
   	//
   	printf("libelle : %s \n", getfield(line, 3));
   	printf("date : %s \n", getfield(line, 1));
   	printf("date valeur : %s \n", getfield(line, 2));
   	printf("montant : %s \n\n", getfield(line, 4));
   }
+
 
 
   fclose(releve);
