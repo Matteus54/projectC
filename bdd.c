@@ -9,6 +9,8 @@
 #define UNUSED(p) ((void)(p))
 
 static sqlite3 *db;
+
+
 static char *zErrMsg = 0;
 static int rc;
 static char *request;
@@ -26,6 +28,8 @@ int hash (const char* word) {
     {
         hash = 31*hash + word[i];
     }
+
+
     return hash % MUST_BE_LESS_THAN;
 }
 
@@ -41,9 +45,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
-transaction_t** bdd_get_list_transaction () {
-  //char *iban en parametr
-  /*
+transaction_t** bdd_get_list_transaction (char *iban) {
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * from transactionCompte WHERE compte_iban = '";
@@ -57,35 +59,44 @@ transaction_t** bdd_get_list_transaction () {
       transaction_t* transaction = malloc(sizeof(transaction_t));
 
       transaction->libelle = calloc(1,sizeof(transaction->libelle));
-      transaction->negatif = calloc(1,sizeof(transaction->negatif));
-      transaction->date = calloc(1,sizeof(transaction->libelle));
-      transaction->commentaire = calloc(1,sizeof(transaction->libelle));
-      transaction->type = calloc(1,sizeof(transaction->libelle));
-      transaction->compte_iban = calloc(1,sizeof(transaction->libelle));
-
+      transaction->date = calloc(1,sizeof(transaction->date));
+      transaction->commentaire = calloc(1,sizeof(transaction->commentaire));
+      transaction->categorie = calloc(1,sizeof(transaction->categorie));
+      transaction->compte = calloc(1,sizeof(transaction->compte));
       while(res_stmt == SQLITE_ROW) {
+        transaction_t* transaction = malloc(sizeof(transaction_t));
+
+        transaction->libelle = calloc(1,sizeof(transaction->libelle));
+        transaction->date = calloc(1,sizeof(transaction->date));
+        transaction->commentaire = calloc(1,sizeof(transaction->commentaire));
+        transaction->categorie = calloc(1,sizeof(transaction->categorie));
+        transaction->compte = calloc(1,sizeof(transaction->compte));
+
         int id = sqlite3_column_int(stmt, 0);
-        char *libelle = (char*) sqlite3_column_text(stmt, 1);
-        double montant = (double) sqlite3_column_double(stmt, 2);
-        char *negatif = (char*) sqlite3_column_text(stmt, 3);
-        double commission = sqlite3_column_double(stmt, 4);
-        char *date = (char*) sqlite3_column_text(stmt, 5);
-        char *commentaire = (char*) sqlite3_column_text(stmt, 6);
-        char *type = (char*) sqlite3_column_text(stmt, 7);
-        char *compte_iban = (char*) sqlite3_column_text(stmt, 8);
+        char *compte_iban = (char*) sqlite3_column_text(stmt, 1);
+        char *date = (char*) sqlite3_column_text(stmt, 2);
+        char *libelle = (char*) sqlite3_column_text(stmt, 3);
+        double montant = (double) sqlite3_column_double(stmt, 4);
+        char *negatif = (char*) sqlite3_column_text(stmt, 5);
+        if(strcmp(negatif, "TRUE") == 0){
+          montant = -montant;
+        }
+        double commission = sqlite3_column_double(stmt, 6);
+        char *categorie = (char*) sqlite3_column_text(stmt, 7);
+        char *commentaire = (char*) sqlite3_column_text(stmt, 8);
 
         transaction->id = id;
         memcpy(transaction->libelle, libelle, strlen(libelle));
         transaction->montant = montant;
-        memcpy(transaction->negatif, negatif, strlen(negatif));
         transaction->commission = commission;
         memcpy(transaction->date, date, strlen(date));
         memcpy(transaction->commentaire, commentaire, strlen(commentaire));
-        memcpy(transaction->type, type, strlen(type));
-        memcpy(transaction->compte_iban, compte_iban, strlen(compte_iban));
+        memcpy(transaction->categorie, categorie, strlen(categorie));
+        memcpy(transaction->compte, compte_iban, strlen(compte_iban));
 
         listTransaction[i] = transaction;
         i++;
+
 
         res_stmt = sqlite3_step(stmt);
       }
@@ -102,8 +113,8 @@ transaction_t** bdd_get_list_transaction () {
     printf("SQL ERROR GET TRANSACTIONS\n");
     return NULL;
   }
-  */
-  return NULL;
+  free(listTransaction);
+  free(request);
 }
 
 livret_t** bdd_get_list_livret() {
@@ -150,6 +161,8 @@ livret_t** bdd_get_list_livret() {
       sqlite3_finalize(stmt);
       return NULL;
     }
+    free(listSavingsAccount);
+    free(request);
   }
   else {
     printf("SQL ERROR GET SAVINGS ACCOUNTS\n");
@@ -168,11 +181,11 @@ account_t** bdd_get_list_account() {
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      account_t* account = malloc(sizeof(account_t));
-      account->iban = calloc(1,sizeof(account->iban));
-      account->libelle = calloc(1,sizeof(account->libelle));
-
       while(res_stmt == SQLITE_ROW) {
+        account_t* account = malloc(sizeof(account_t));
+        account->iban = calloc(1,sizeof(account->iban));
+        account->libelle = calloc(1,sizeof(account->libelle));
+
         char *iban = (char *) sqlite3_column_text(stmt, 0);
         double solde = (double) sqlite3_column_double(stmt, 1);
         char *libelle = (char*) sqlite3_column_text(stmt, 2);
@@ -231,6 +244,9 @@ char** bdd_get_field_from_table(char *field, char *table) {
       printf("SQL ERROR LOGIN\n");
       return NULL;
   }
+  free(listText);
+  free(request);
+  free(text);
 }
 
 char** bdd_get_categorie() {
@@ -282,28 +298,28 @@ int bdd_execute(char *sql) {
   }
 }
 
-const char* bdd_get_iban_from_libelle(char* libelle) {
-  char *request = "SELECT iban FROM compte WHERE libelle = ?;";
-
+char* bdd_get_iban_from_libelle(char* libelle) {
+  char request[1024] = "SELECT iban FROM compte WHERE libelle = '";
+  strcat(request, libelle);
+  strcat(request, "';");
+  char *iban = malloc(sizeof(char)*34);
   sqlite3_stmt *stmt;
-  const char *iban = malloc(sizeof(char)*34);
-  iban = "iban";
 
-  if (sqlite3_prepare_v2(db, request, 350, &stmt, 0) == SQLITE_OK) {
-    sqlite3_bind_text(stmt, 1, libelle, -1, 0);
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
-
     if(res_stmt == SQLITE_ROW) {
-      iban = (const char*)sqlite3_column_text(stmt,0);
+      char* text = (char*)sqlite3_column_text(stmt,0);
+      memcpy(iban, text, strlen(text));
     }
+    sqlite3_finalize(stmt);
+    return iban;
   } else {
-    printf("SQL ERROR LOGIN\n");
+    printf("SQL ERROR GET IBAN FROM LIBELLE\n");
+    sqlite3_finalize(stmt);
     return NULL;
   }
-
-  sqlite3_finalize(stmt);
-
-  return iban;
+  free(iban);
+  free(request);
 }
 
 /* Initialise la BDD lors du lancement de lapplication
@@ -371,10 +387,11 @@ void bdd_init() {
   request = "INSERT OR IGNORE INTO typeTransaction VALUES ('Transfert');";
   bdd_execute(request);
 
+
   request = "CREATE TABLE IF NOT EXISTS transactionCompte ("\
           "id_transaction INTEGER PRIMARY KEY AUTOINCREMENT,"\
           "compte_iban VARCHAR2(34) NOT NULL,"\
-          "date DATE NOT NULL,"\
+          "date VARCHAR2(8) NOT NULL,"\
           "libelle VARCHAR2(255) NOT NULL,"\
           "montant NUMBER(12,2) NOT NULL,"\
           "negatif BOOLEAN NOT NULL,"\

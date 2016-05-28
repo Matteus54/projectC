@@ -13,7 +13,7 @@ extern GtkWidget *activeWindow;
 extern GtkWidget *window;
 extern GtkWidget *grid;
 
-const char* getfield(char* line, int num) // a reecrire (copier coller d'internet)
+const char* getfield(const char* line, int num) // a reecrire (copier coller d'internet)
 {
 	char copy[1024];
 
@@ -66,55 +66,94 @@ void create_categorie_form(GtkWidget *widget) {
 	gtk_grid_attach(GTK_GRID(grid), button_exit, 0, 3, 1, 1);
 
 	gtk_widget_show_all(windowCategorieForm);
-}
 
-transaction_t* extract_transaction_from_form(transaction_entry_creation_t *entries) {
-	guint *year, *month, *day;
-	year = malloc(sizeof(guint));
-	month = malloc(sizeof(guint));
-	day = malloc(sizeof(guint));
-	char date[8];
-
-	char *compte = malloc(sizeof(char)*34);
-	strcpy(compte, bdd_get_iban_from_libelle(gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->compte))));
-	gtk_calendar_get_date(GTK_CALENDAR(entries->date), year, month, day);
-	const char *libelle = gtk_entry_get_text(GTK_ENTRY(entries->libelle));
-	const char *montant = gtk_entry_get_text(GTK_ENTRY(entries->montant));
-	const char *commission = gtk_entry_get_text(GTK_ENTRY(entries->commission));
-	const char *categorie = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(entries->categorie));
-	const char *commentaire = gtk_entry_get_text(GTK_ENTRY(entries->commentaire));
-
-	transaction_t *transaction = (transaction_t*)malloc(sizeof(transaction_t));
-
-	(*month)++;
-	if (*month < 10)
-		sprintf(date, "%i0%i%i", *year, *month, *day);
-	else
-		sprintf(date, "%i%i%i", *year, *month, *day);
-
-	transaction->compte = compte;
-	transaction->date = date;
-	transaction->libelle = libelle;
-	transaction->montant = atof(montant);
-	transaction->commission = atof(commission);
-	transaction->categorie = categorie;
-	transaction->commentaire = commentaire;
-
-	return transaction;
 }
 
 transaction_t* extract_transaction_from_import(transaction_entry_creation_t *entries) {
-
+	UNUSED(entries);
+	return NULL;
 }
 
 
 void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries) {
 	UNUSED(widget);
 
-	transaction_t *transaction = extract_transaction_from_form(entries);
+	transaction_entry_creation_t* transaction_entry = (transaction_entry_creation_t*) entries;
+  GtkWidget *compte = GTK_WIDGET(transaction_entry->compte);
+  GtkWidget *date = GTK_WIDGET(transaction_entry->date);
+  GtkWidget *libelle = GTK_WIDGET(transaction_entry->libelle);
+  GtkWidget *montant = GTK_WIDGET(transaction_entry->montant);
+  GtkWidget *commission = GTK_WIDGET(transaction_entry->commission);
+  GtkWidget *categorie = GTK_WIDGET(transaction_entry->categorie);
+  GtkWidget *commentaire = GTK_WIDGET(transaction_entry->commentaire);
 
-  bdd_insert_transaction(transaction);
-	bdd_apply_transaction(transaction);
+	guint *year, *month, *day;
+	year = malloc(sizeof(guint));
+	month = malloc(sizeof(guint));
+	day = malloc(sizeof(guint));
+	gtk_calendar_get_date(GTK_CALENDAR(date), year, month, day);
+
+	char *compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
+	const char *iban = bdd_get_iban_from_libelle(compte_text);
+  const char *libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
+	const char *montant_text = gtk_entry_get_text(GTK_ENTRY(montant));
+	const char *commission_text = gtk_entry_get_text(GTK_ENTRY(commission));
+	const char *categorie_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(categorie));
+	const char *commentaire_text = gtk_entry_get_text(GTK_ENTRY(commentaire));
+
+	char *date_text = malloc(sizeof(char)*8);
+	char buffer[10];
+
+	sprintf(buffer, "%d", *year);
+	strcat(date_text, buffer);
+	strcat(date_text, "/");
+	sprintf(buffer, "%d", *month);
+	strcat(date_text, buffer);
+	strcat(date_text, "/");
+	sprintf(buffer, "%d", *day);
+	strcat(date_text, buffer);
+
+	if(strlen(libelle_text) <= 255) {
+		if(isNumeric(montant_text, 1)) {
+			if(isNumeric(commission_text, 1)) {
+				if(strlen(commentaire_text) <= 255) {
+					char request[1024] = "INSERT INTO transactionCompte "\
+				  "(compte_iban, date, libelle, montant, negatif, commission, type, commentaire) "\
+				  "VALUES('";
+				  strcat(request, iban);
+				  strcat(request, "', '");
+				  strcat(request, date_text);
+				  strcat(request, "', '");
+				  strcat(request, libelle_text);
+				  strcat(request, "', '");
+					strcat(request,	montant_text);
+				  strcat(request, "', ");
+				  strcat(request, "'FALSE'"); //n'est peut être pas necessaire
+				  strcat(request, ", '");
+					strcat(request, commission_text);
+				  strcat(request, "', '");
+				  strcat(request, categorie_text);
+				  strcat(request, "', '");
+				  strcat(request, commentaire_text);
+				  strcat(request, "');");
+
+				  bdd_execute(request);
+				}
+				else {
+					alert_dialog("Commentaire must be between 0 and 255");
+				}
+			}
+			else {
+				alert_dialog("Commission must be a numeric");
+			}
+		}
+		else {
+			alert_dialog("Montant must be a numeric");
+		}
+	}
+	else {
+		alert_dialog("Libelle between 0 and 255");
+	}
 }
 
 void create_transaction_form() {
@@ -142,18 +181,20 @@ void create_transaction_form() {
 	  categorie_list = gtk_combo_box_text_new();
 
 	  //ajout des choix dans les listes deroulante
-	  while(*listCompte != NULL) {
+		while(*listCompte != NULL) {
 	    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(compte_list),NULL,*listCompte);
 	    listCompte++;
 	  }
 
 	  char **listCategorie = bdd_get_categorie();
-	  while(*listCategorie != NULL) {
-	    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(categorie_list),NULL,*listCategorie);
-	    listCategorie++;
-	  }
+		if(listCategorie != NULL) {
+			while(*listCategorie != NULL) {
+		    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(categorie_list),NULL,*listCategorie);
+		    listCategorie++;
+		  }
+		}
 
-		gtk_combo_box_set_active(GTK_COMBO_BOX(compte_list), 0);
+	  gtk_combo_box_set_active(GTK_COMBO_BOX(compte_list), 0);
 	  gtk_combo_box_set_active(GTK_COMBO_BOX(categorie_list), 0);
 
 
@@ -202,7 +243,7 @@ void create_transaction_form() {
 	}
 }
 
-void valider_import_transaction(char* iban, char* date, char* libelle, char* montant, char* commission) {
+void valider_import_transaction(const char* iban,const char* date,const char* libelle,const char* montant,const char* commission) {
 	GtkWidget *windowTransactionForm;
   GtkWidget *grid;
   GtkWidget *categorie_list ,*commentaire_field;

@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 typedef struct {
+  GtkWidget *id;
   GtkWidget *compte;
   GtkWidget *date;
   GtkWidget *libelle;
@@ -16,13 +17,14 @@ typedef struct {
 
 typedef struct {
   int id;
-  const char *compte;
-  const char *date;
-  const char *libelle;
-  float montant;
-  float commission;
-  const char *categorie;
-  const char *commentaire;
+  char *compte;
+  char *date;
+  char *libelle;
+  char *negatif;
+  double montant;
+  double commission;
+  char *categorie;
+  char *commentaire;
   //char *devise;
 } transaction_t;
 
