@@ -201,7 +201,7 @@ account_t** bdd_get_list_account() {
   }
 }
 
-char** bdd_get_field_from_table(char *table, char *field) {
+char** bdd_get_field_from_table(char *field, char *table) {
   char **listText = (char **) calloc (30,sizeof(char*));
   char *text;
   int i = 0;
@@ -234,11 +234,15 @@ char** bdd_get_field_from_table(char *table, char *field) {
 }
 
 char** bdd_get_categorie() {
-  return bdd_get_field_from_table("typeTransaction", "type_trans");
+  return bdd_get_field_from_table("type_trans", "typeTransaction");
 }
 
 char** bdd_get_type_livret() {
-  return bdd_get_field_from_table("livret_type", "type_livret");
+  return bdd_get_field_from_table("type_livret", "livret_type");
+}
+
+char** bdd_get_libelle_account() {
+  return bdd_get_field_from_table("libelle", "compte");
 }
 
 int bdd_login(char* request) {

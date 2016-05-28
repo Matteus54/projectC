@@ -118,84 +118,88 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 }
 
 void create_transaction_form() {
-  GtkWidget *windowTransactionForm;
-  GtkWidget *grid;
-  GtkWidget *compte_list, *date_calendar, *libelle_field, *montant_field, *commission_field, *categorie_list ,*commentaire_field;
-  GtkWidget *button_create_categorie, *button_OK, *button_exit;
+	char **listCompte = bdd_get_libelle_account();
+	if (listCompte != NULL) {
+	  GtkWidget *windowTransactionForm;
+	  GtkWidget *grid;
+	  GtkWidget *compte_list, *date_calendar, *libelle_field, *montant_field, *commission_field, *categorie_list ,*commentaire_field;
+	  GtkWidget *button_create_categorie, *button_OK, *button_exit;
 
-  windowTransactionForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(windowTransactionForm), "Creation d'une transaction'");
-  gtk_window_set_default_size(GTK_WINDOW(windowTransactionForm), 400,200);
-  gtk_window_set_position(GTK_WINDOW(windowTransactionForm), GTK_WIN_POS_CENTER);
+	  windowTransactionForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	  gtk_window_set_title(GTK_WINDOW(windowTransactionForm), "Creation d'une transaction'");
+	  gtk_window_set_default_size(GTK_WINDOW(windowTransactionForm), 400,200);
+	  gtk_window_set_position(GTK_WINDOW(windowTransactionForm), GTK_WIN_POS_CENTER);
 
-  grid = gtk_grid_new();
-  gtk_container_add(GTK_CONTAINER(windowTransactionForm), grid);
+	  grid = gtk_grid_new();
+	  gtk_container_add(GTK_CONTAINER(windowTransactionForm), grid);
 
-  compte_list = gtk_combo_box_text_new();
-  date_calendar = gtk_calendar_new();
-  libelle_field = gtk_entry_new();
-  montant_field = gtk_entry_new();
-  commission_field = gtk_entry_new();
-  commentaire_field = gtk_entry_new();
-  categorie_list = gtk_combo_box_text_new();
+	  compte_list = gtk_combo_box_text_new();
+	  date_calendar = gtk_calendar_new();
+	  libelle_field = gtk_entry_new();
+	  montant_field = gtk_entry_new();
+	  commission_field = gtk_entry_new();
+	  commentaire_field = gtk_entry_new();
+	  categorie_list = gtk_combo_box_text_new();
 
-  //ajout des choix dans les listes deroulante
-  account_t **listCompte = bdd_get_list_account();
-  while(*listCompte != NULL) {
-    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(compte_list),NULL,(*listCompte)->libelle);
-    listCompte++;
-  }
+	  //ajout des choix dans les listes deroulante
+	  while(*listCompte != NULL) {
+	    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(compte_list),NULL,*listCompte);
+	    listCompte++;
+	  }
 
-  char **listCategorie = bdd_get_categorie();
-  while(*listCategorie != NULL) {
-    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(categorie_list),NULL,*listCategorie);
-    listCategorie++;
-  }
+	  char **listCategorie = bdd_get_categorie();
+	  while(*listCategorie != NULL) {
+	    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(categorie_list),NULL,*listCategorie);
+	    listCategorie++;
+	  }
 
-  gtk_combo_box_set_active(GTK_COMBO_BOX(compte_list), 0);
-  gtk_combo_box_set_active(GTK_COMBO_BOX(categorie_list), 0);
+		gtk_combo_box_set_active(GTK_COMBO_BOX(compte_list), 0);
+	  gtk_combo_box_set_active(GTK_COMBO_BOX(categorie_list), 0);
 
 
-  //declaration de la structure qui sert de formumlaire
-  transaction_entry_creation_t *transaction_entries = malloc(sizeof(transaction_entry_creation_t));
-  transaction_entries->compte = compte_list;
-  transaction_entries->date = date_calendar;
-  transaction_entries->libelle = libelle_field;
-  transaction_entries->montant = montant_field;
-  transaction_entries->commission = commission_field;
-  transaction_entries->categorie = categorie_list;
-  transaction_entries->commentaire = commentaire_field;
+	  //declaration de la structure qui sert de formumlaire
+	  transaction_entry_creation_t *transaction_entries = malloc(sizeof(transaction_entry_creation_t));
+	  transaction_entries->compte = compte_list;
+	  transaction_entries->date = date_calendar;
+	  transaction_entries->libelle = libelle_field;
+	  transaction_entries->montant = montant_field;
+	  transaction_entries->commission = commission_field;
+	  transaction_entries->categorie = categorie_list;
+	  transaction_entries->commentaire = commentaire_field;
 
-  // creation of the buttons
-  button_create_categorie = gtk_button_new_with_label("New categorie");
-  g_signal_connect(GTK_BUTTON(button_create_categorie), "clicked", G_CALLBACK(create_categorie_form), NULL);
+	  // creation of the buttons
+	  button_create_categorie = gtk_button_new_with_label("New categorie");
+	  g_signal_connect(GTK_BUTTON(button_create_categorie), "clicked", G_CALLBACK(create_categorie_form), NULL);
 
-  button_OK = gtk_button_new_with_label("Create transaction");
-  g_signal_connect(GTK_BUTTON(button_OK), "clicked", G_CALLBACK(create_transaction), transaction_entries);
+	  button_OK = gtk_button_new_with_label("Create transaction");
+	  g_signal_connect(GTK_BUTTON(button_OK), "clicked", G_CALLBACK(create_transaction), transaction_entries);
 
-  button_exit = gtk_button_new_with_label("Exit form");
-  g_signal_connect(GTK_BUTTON(button_exit), "clicked", G_CALLBACK(close_window), windowTransactionForm);
+	  button_exit = gtk_button_new_with_label("Exit form");
+	  g_signal_connect(GTK_BUTTON(button_exit), "clicked", G_CALLBACK(close_window), windowTransactionForm);
 
-  // packing GUI
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Linked account"), 0, 0, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), compte_list, 0, 1, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Date"), 0, 2, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), date_calendar, 0, 3, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Libelle"), 0, 4, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), libelle_field, 0, 5, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Amount"), 0, 6, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), montant_field, 0, 7, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commission"), 0, 8, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), commission_field, 0, 9, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Categorie"), 0, 10, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), categorie_list, 0, 11, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), button_create_categorie, 1, 11, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commentaire"), 0, 12, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), commentaire_field, 0, 13, 2, 1);
-  gtk_grid_attach(GTK_GRID(grid), button_OK, 0, 14, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), button_exit, 1, 14, 1, 1);
+	  // packing GUI
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Linked account"), 0, 0, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), compte_list, 0, 1, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Date"), 0, 2, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), date_calendar, 0, 3, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Libelle"), 0, 4, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), libelle_field, 0, 5, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Amount"), 0, 6, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), montant_field, 0, 7, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commission"), 0, 8, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), commission_field, 0, 9, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Categorie"), 0, 10, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), categorie_list, 0, 11, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), button_create_categorie, 1, 11, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), gtk_label_new("Commentaire"), 0, 12, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), commentaire_field, 0, 13, 2, 1);
+	  gtk_grid_attach(GTK_GRID(grid), button_OK, 0, 14, 1, 1);
+	  gtk_grid_attach(GTK_GRID(grid), button_exit, 1, 14, 1, 1);
 
-  gtk_widget_show_all(windowTransactionForm);
+	  gtk_widget_show_all(windowTransactionForm);
+	} else {
+		alert_dialog("Please create accounts before trying to add transactions");
+	}
 }
 
 void valider_import_transaction(char* iban, char* date, char* libelle, char* montant, char* commission) {
