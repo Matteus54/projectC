@@ -87,31 +87,63 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
   GtkWidget *categorie = GTK_WIDGET(transaction_entry->categorie);
   GtkWidget *commentaire = GTK_WIDGET(transaction_entry->commentaire);
 
-	guint *year, *month, *day;
-	year = malloc(sizeof(guint));
-	month = malloc(sizeof(guint));
-	day = malloc(sizeof(guint));
-	gtk_calendar_get_date(GTK_CALENDAR(date), year, month, day);
 
-	char *compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
+	char *compte_text;
+	if (GTK_IS_LABEL(compte)) {
+		compte_text = (char*)gtk_label_get_text(GTK_LABEL(compte));
+	} else {
+		compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
+	}
 	const char *iban = bdd_get_iban_from_libelle(compte_text);
-  const char *libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
-	const char *montant_text = gtk_entry_get_text(GTK_ENTRY(montant));
-	const char *commission_text = gtk_entry_get_text(GTK_ENTRY(commission));
+
+	const char *libelle_text;
+	if (GTK_IS_ENTRY(libelle)) {
+  	libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
+	} else {
+		libelle_text = gtk_label_get_text(GTK_LABEL(libelle));
+	}
+
+	const char *montant_text;
+	if (GTK_IS_ENTRY(montant)) {
+		montant_text = gtk_entry_get_text(GTK_ENTRY(montant));
+	} else {
+		montant_text = gtk_label_get_text(GTK_LABEL(montant));
+	}
+
+	const char *commission_text;
+	if(GTK_IS_ENTRY(commission)) {
+		commission_text = gtk_entry_get_text(GTK_ENTRY(commission));
+	} else {
+		commission_text = gtk_label_get_text(GTK_LABEL(commission));
+	}
+
 	const char *categorie_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(categorie));
 	const char *commentaire_text = gtk_entry_get_text(GTK_ENTRY(commentaire));
 
-	char *date_text = malloc(sizeof(char)*8);
-	char buffer[10];
+	char *date_text = malloc(sizeof(char)*10);
+	if (GTK_IS_CALENDAR(date)) {
+		guint *year, *month, *day;
+		year = malloc(sizeof(guint));
+		month = malloc(sizeof(guint));
+		day = malloc(sizeof(guint));
+		gtk_calendar_get_date(GTK_CALENDAR(date), year, month, day);
 
-	sprintf(buffer, "%d", *year);
-	strcat(date_text, buffer);
-	strcat(date_text, "/");
-	sprintf(buffer, "%d", *month);
-	strcat(date_text, buffer);
-	strcat(date_text, "/");
-	sprintf(buffer, "%d", *day);
-	strcat(date_text, buffer);
+		//char buffer[10];
+
+		sprintf(date_text, "%d/%d/%d", *year, *month, *day);
+		/*
+		sprintf(buffer, "%d", *year);
+		strcat(date_text, buffer);
+		strcat(date_text, "/");
+		sprintf(buffer, "%d", *month);
+		strcat(date_text, buffer);
+		strcat(date_text, "/");
+		sprintf(buffer, "%d", *day);
+		strcat(date_text, buffer);
+		*/
+	} else {
+		strcpy(date_text, gtk_label_get_text(GTK_LABEL(date)));
+	}
 
 	if(strlen(libelle_text) <= 255) {
 		if(isNumeric(montant_text, 1)) {
@@ -243,12 +275,22 @@ void create_transaction_form() {
 	}
 }
 
-void valider_import_transaction(const char* iban,const char* date,const char* libelle,const char* montant,const char* commission) {
+void valider_import_transaction(const char *iban, const char *line) {
+	//const char* iban,const char* date,const char* libelle,const char* montant,const char* commission) {
 	GtkWidget *windowTransactionForm;
   GtkWidget *grid;
   GtkWidget *categorie_list ,*commentaire_field;
 	GtkWidget *date_label, *libelle_label, *montant_label, *commission_label;
   GtkWidget *button_create_categorie, *button_OK, *button_exit;
+
+	char* date = (char*)malloc(sizeof(char)*10);
+	strcpy(date, getfield(line, 1));
+	char* libelle = (char*)malloc(sizeof(char)*255);
+	strcpy(libelle, getfield(line, 2));
+	char* montant = (char*)malloc(sizeof(char)*13);
+	strcpy(montant, getfield(line, 3));
+	char* commission = (char*)malloc(sizeof(char)*7);
+	strcpy(commission, getfield(line, 4));
 
   windowTransactionForm = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(windowTransactionForm), "Creation d'une transaction'");
@@ -329,16 +371,19 @@ void import_releve() {
 
   fgets(line, 1024, releve); //on saute la ligne des titres des colonnes
   while(fgets(line, 1024, releve)) {
-		valider_import_transaction(iban,\
+		valider_import_transaction(iban, line);
+		/*
 															getfield(line, 1),\
 															getfield(line, 3),\
 															getfield(line, 4),\
 															getfield(line, 5));
-  	//
+		*/
+  	/*
   	printf("libelle : %s \n", getfield(line, 3));
   	printf("date : %s \n", getfield(line, 1));
   	printf("date valeur : %s \n", getfield(line, 2));
   	printf("montant : %s \n\n", getfield(line, 4));
+		*/
   }
 
 

@@ -45,6 +45,21 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
   return 0;
 }
 
+//Fonction qui permet dexecuter une requete SQL en parametre
+int bdd_execute(char *sql) {
+  //printf("%s\n", sql);
+  rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+  if( rc != SQLITE_OK) {
+    fprintf(stderr, "SQL ERROR: %s\n", zErrMsg);
+    sqlite3_free(zErrMsg);
+    return 0;
+  }
+  else {
+    fprintf(stdout, "SQL request executed successfully\n");
+    return 1;
+  }
+}
+
 transaction_t** bdd_get_list_transaction (char *iban) {
   int i = 0;
   sqlite3_stmt *stmt;
@@ -281,20 +296,6 @@ int bdd_login(char* request) {
   else {
     printf("SQL ERROR LOGIN\n");
     return 0;
-  }
-}
-
-//Fonction qui permet dexecuter une requete SQL en parametre
-int bdd_execute(char *sql) {
-  rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-  if( rc != SQLITE_OK) {
-    fprintf(stderr, "SQL ERROR: %s\n", zErrMsg);
-    sqlite3_free(zErrMsg);
-    return 0;
-  }
-  else {
-    fprintf(stdout, "SQL request executed successfully\n");
-    return 1;
   }
 }
 
