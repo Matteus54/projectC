@@ -124,23 +124,19 @@ void create_account(GtkWidget *widget, gpointer* data) {
 }
 
 void tree_selection(GtkTreeSelection *selection, gpointer data) {
-  printf("hello0\n");
   UNUSED(data);
   GtkTreeIter iter;
   GtkTreeModel* model;
   GtkListStore* modelTransaction = data;
   char *iban;
-  printf("hello1\n");
   if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
       gtk_tree_model_get (model, &iter, 0, &iban, -1);
 
       gtk_list_store_clear(modelTransaction);
 
       transaction_t **listTransaction = bdd_get_list_transaction(iban);
-      printf("hello2\n");
       if(listTransaction != NULL) {
         while(*listTransaction != NULL) {
-          printf("hello3\n");
           gtk_list_store_insert_with_values(modelTransaction, NULL, -1,
                                           0, (*listTransaction)->id,
                                           1, (*listTransaction)->date,
@@ -150,13 +146,10 @@ void tree_selection(GtkTreeSelection *selection, gpointer data) {
                                           5, (*listTransaction)->categorie,
                                           6, (*listTransaction)->commentaire,
                                           -1);
-          printf("hello4\n");
           listTransaction++;
         }
       }
     }
-    printf("goodbye\n");
-
 }
 
 
@@ -241,8 +234,6 @@ void create_account_form() {
 
 
 void show_compte (GtkWidget *widget, gpointer* data) {
-  printf("hello 0\n");
-
   UNUSED(widget);
   UNUSED(data);
   //GtkWidget *scrollbar;
@@ -271,13 +262,9 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   model = gtk_list_store_new(6, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING);
   modelTransaction = gtk_list_store_new(7, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_STRING);
 
-  printf("hello 1\n");
   account_t **listCompte = bdd_get_list_account();
   if(listCompte != NULL) {
     while(*listCompte != NULL) {
-      printf("%s\n", (*listCompte)->iban);
-      printf("%f\n", (*listCompte)->solde);
-      printf("%s\n\n", (*listCompte)->libelle);
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listCompte)->iban,
                                       1, (*listCompte)->solde,
@@ -287,16 +274,9 @@ void show_compte (GtkWidget *widget, gpointer* data) {
     }
   }
 
-  printf("hello 3\n");
   livret_t **listLivret = bdd_get_list_livret();
   if(listLivret != NULL) {
     while(*listLivret != NULL) {
-      printf("%s\n", (*listLivret)->iban);
-      printf("%f\n", (*listLivret)->solde);
-      printf("%s\n", (*listLivret)->libelle);
-      printf("%f\n", (*listLivret)->plafond);
-      printf("%f\n", (*listLivret)->interet);
-      printf("%s\n\n", (*listLivret)->type_livret);
       gtk_list_store_insert_with_values(model, NULL, -1,
                                       0, (*listLivret)->iban ,
                                       1, (*listLivret)->solde,
@@ -308,7 +288,6 @@ void show_compte (GtkWidget *widget, gpointer* data) {
       listLivret++;
     }
   }
-  printf("hello 4\n");
 
   view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(model));
   g_object_unref(model);
@@ -326,7 +305,6 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   column = gtk_tree_view_column_new_with_attributes("Type", gtk_cell_renderer_text_new(), "text", 5, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(view), column);
 
-  printf("hello 5\n");
 
   //ONCLICK sur un compte, on applique la fonction tree_selection
   select = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
@@ -351,7 +329,6 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   column = gtk_tree_view_column_new_with_attributes("commentaire", gtk_cell_renderer_text_new(), "text", 6, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewTransaction), column);
 
-  printf("hello 6\n");
 
   GtkWidget *createCompteButton, *button_retour;
 

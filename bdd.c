@@ -66,53 +66,24 @@ transaction_t** bdd_get_list_transaction (char *iban) {
   strcat(request, "';");
 
   transaction_t **listTransaction = (transaction_t**) calloc(500, sizeof(transaction_t*));
+
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      transaction_t* transaction = malloc(sizeof(transaction_t));
-
-      transaction->libelle = calloc(1,sizeof(transaction->libelle));
-      transaction->date = calloc(1,sizeof(transaction->date));
-      transaction->commentaire = calloc(1,sizeof(transaction->commentaire));
-      transaction->categorie = calloc(1,sizeof(transaction->categorie));
-      transaction->compte = calloc(1,sizeof(transaction->compte));
-      while(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW && i<500) {
         transaction_t* transaction = malloc(sizeof(transaction_t));
 
-        transaction->libelle = calloc(1,sizeof(transaction->libelle));
-        transaction->date = calloc(1,sizeof(transaction->date));
-        transaction->commentaire = calloc(1,sizeof(transaction->commentaire));
-        transaction->categorie = calloc(1,sizeof(transaction->categorie));
-        transaction->compte = calloc(1,sizeof(transaction->compte));
-
-        int id = sqlite3_column_int(stmt, 0);
-        char *compte_iban = (char*) sqlite3_column_text(stmt, 1);
-        char *date = (char*) sqlite3_column_text(stmt, 2);
-        char *libelle = (char*) sqlite3_column_text(stmt, 3);
-        double montant = (double) sqlite3_column_double(stmt, 4);
-        char *negatif = (char*) sqlite3_column_text(stmt, 5);
-        /*
-        //inutile puisque la base de donnée peut stocker des valeurs negatives
-        if(strcmp(negatif, "TRUE") == 0){
-          montant = -montant;
-        }
-        */
-        double commission = sqlite3_column_double(stmt, 6);
-        char *categorie = (char*) sqlite3_column_text(stmt, 7);
-        char *commentaire = (char*) sqlite3_column_text(stmt, 8);
-
-        transaction->id = id;
-        memcpy(transaction->libelle, libelle, strlen(libelle));
-        transaction->montant = montant;
-        transaction->commission = commission;
-        memcpy(transaction->date, date, strlen(date));
-        memcpy(transaction->commentaire, commentaire, strlen(commentaire));
-        memcpy(transaction->categorie, categorie, strlen(categorie));
-        memcpy(transaction->compte, compte_iban, strlen(compte_iban));
+        transaction->id = sqlite3_column_int(stmt, 0);
+        strcpy(transaction->libelle, (char*) sqlite3_column_text(stmt, 3));
+        transaction->montant = (double) sqlite3_column_double(stmt, 4);
+        transaction->commission = (double) sqlite3_column_double(stmt, 6);
+        strcpy(transaction->date, (char*) sqlite3_column_text(stmt, 2));
+        strcpy(transaction->commentaire, (char*) sqlite3_column_text(stmt, 8));
+        strcpy(transaction->categorie, (char*) sqlite3_column_text(stmt, 7));
+        strcpy(transaction->compte, (char*) sqlite3_column_text(stmt, 1));
 
         listTransaction[i] = transaction;
         i++;
-
 
         res_stmt = sqlite3_step(stmt);
       }
@@ -134,7 +105,6 @@ transaction_t** bdd_get_list_transaction (char *iban) {
 }
 
 livret_t** bdd_get_list_livret() {
-  printf("helloe\n");
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * FROM compte c NATURAL JOIN livret t WHERE proprietaire = '";
@@ -146,25 +116,15 @@ livret_t** bdd_get_list_livret() {
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      livret_t* account = (livret_t*) malloc(sizeof(livret_t));
-      account->iban = calloc(1,sizeof(account->iban));
-      account->libelle = calloc(1,sizeof(account->libelle));
-      account->type_livret = calloc(1,sizeof(account->type_livret));
+      while(res_stmt == SQLITE_ROW && i<100) {
+        livret_t* account = (livret_t*) malloc(sizeof(livret_t));
 
-      while(res_stmt == SQLITE_ROW) {
-        char *iban = (char *) sqlite3_column_text(stmt, 0);
-        double solde = (double) sqlite3_column_double(stmt, 1);
-        char *libelle = (char*) sqlite3_column_text(stmt, 2);
-        double plafond = (double) sqlite3_column_double(stmt, 5);
-        double interet = (double) sqlite3_column_double(stmt, 6);
-        char *type_livret = (char*) sqlite3_column_text(stmt, 7);
-
-        memcpy(account->iban, iban, strlen(iban));
-        account->solde = solde;
-        memcpy(account->libelle, libelle, strlen(libelle));
-        account->plafond = plafond;
-        account->interet = interet;
-        memcpy(account->type_livret, type_livret, strlen(type_livret));
+        strcpy(account->iban, (char*) sqlite3_column_text(stmt, 0));
+        account->solde = (double) sqlite3_column_double(stmt, 1);
+        strcpy(account->libelle, (char*) sqlite3_column_text(stmt, 2));
+        account->plafond = (double) sqlite3_column_double(stmt, 5);
+        account->interet = (double) sqlite3_column_double(stmt, 6);
+        strcpy(account->type_livret, (char*) sqlite3_column_text(stmt, 7));
 
         listSavingsAccount[i] = account;
         i++;
@@ -195,22 +155,16 @@ account_t** bdd_get_list_account() {
   strcat(request, login);
   strcat(request, "' AND booleanLivret = 'FALSE';");
 
-  account_t **listAccount = (account_t**) calloc(500, sizeof(account_t*));
+  account_t **listAccount = (account_t**) calloc(100, sizeof(account_t*));
   if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
-      while(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW && i<100) {
         account_t* account = malloc(sizeof(account_t));
-        account->iban = calloc(1,sizeof(account->iban));
-        account->libelle = calloc(1,sizeof(account->libelle));
 
-        char *iban = (char *) sqlite3_column_text(stmt, 0);
-        double solde = (double) sqlite3_column_double(stmt, 1);
-        char *libelle = (char*) sqlite3_column_text(stmt, 2);
-
-        memcpy(account->iban, iban, strlen(iban));
-        account->solde = solde;
-        memcpy(account->libelle, libelle, strlen(libelle));
+        strcpy(account->iban, (char*) sqlite3_column_text(stmt, 0));
+        account->solde = (double) sqlite3_column_double(stmt, 1);
+        strcpy(account->libelle, (char*) sqlite3_column_text(stmt, 2));
 
         listAccount[i] = account;
 

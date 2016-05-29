@@ -3,8 +3,7 @@ DONE
 
 
 TODO
-- debuguer
-- possibilité de choisir des mois pour afficher les transactions
+- possibilité de choisir des filtres pour afficher les transactions
 - plot transaction par mois
 - ajouter les relevé dans une table avec le compte la date de la 1er et derniere transaction
 - optimisation mémoire

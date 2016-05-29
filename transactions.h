@@ -18,14 +18,14 @@ typedef struct {
 
 typedef struct {
   int id;
-  char *compte;
-  char *date;
-  char *libelle;
-  char *negatif;
+  char compte[35];
+  char date[11];
+  char libelle[256];
+  char negatif[6];
   double montant;
   double commission;
-  char *categorie;
-  char *commentaire;
+  char categorie[256];
+  char commentaire[256];
   //char *devise;
 } transaction_t;
 

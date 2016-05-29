@@ -15,18 +15,18 @@ typedef struct {
 } account_entry_creation_t;
 
 typedef struct {
-  char *iban;
+  char iban[35];
   double solde;
-  char *libelle;
+  char libelle[256];
 } account_t;
 
 typedef struct {
-  char *iban;
+  char iban[35];
   double solde;
-  char *libelle;
+  char libelle[256];
   double plafond;
   double interet;
-  char *type_livret;
+  char type_livret[256];
 } livret_t;
 
 int isNumeric(const char *string, int isDecimal);
