@@ -30,9 +30,9 @@ typedef struct {
 } transaction_t;
 
 typedef struct {
-  char *compte;
-  char *date_debut;
-  char *date_fin;
+  char compte[35];
+  char date_debut[11];
+  char date_fin[11];
 } releve_t;
 
 void transaction_window(GtkWidget *widget, gpointer* data);

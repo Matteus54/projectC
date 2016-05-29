@@ -124,21 +124,23 @@ void create_account(GtkWidget *widget, gpointer* data) {
 }
 
 void tree_selection(GtkTreeSelection *selection, gpointer data) {
-  printf("hello\n");
+  printf("hello0\n");
   UNUSED(data);
   GtkTreeIter iter;
   GtkTreeModel* model;
   GtkListStore* modelTransaction = data;
   char *iban;
+  printf("hello1\n");
   if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
       gtk_tree_model_get (model, &iter, 0, &iban, -1);
 
       gtk_list_store_clear(modelTransaction);
 
       transaction_t **listTransaction = bdd_get_list_transaction(iban);
-
+      printf("hello2\n");
       if(listTransaction != NULL) {
         while(*listTransaction != NULL) {
+          printf("hello3\n");
           gtk_list_store_insert_with_values(modelTransaction, NULL, -1,
                                           0, (*listTransaction)->id,
                                           1, (*listTransaction)->date,
@@ -148,10 +150,12 @@ void tree_selection(GtkTreeSelection *selection, gpointer data) {
                                           5, (*listTransaction)->categorie,
                                           6, (*listTransaction)->commentaire,
                                           -1);
+          printf("hello4\n");
           listTransaction++;
         }
       }
     }
+    printf("goodbye\n");
 
 }
 
@@ -219,7 +223,7 @@ void create_account_form() {
   exit_button = gtk_button_new_with_label("Exit form");
   g_signal_connect(GTK_BUTTON(exit_button), "clicked", G_CALLBACK(close_window), G_OBJECT(windowAccountForm));
 
-  gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Id"), 0, 0, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("IBAN"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), iban_field, 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), gtk_label_new("Libelle"), 0, 0, 0);
   gtk_box_pack_start(GTK_BOX(vbox), libelle_field, 0, 0, 0);
@@ -250,9 +254,9 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
   //AJOUT SCROLLBAR
-  //GtkWidget *scrollbar = gtk_scrolled_window_new(NULL, NULL);
+  GtkWidget *scrollbar = gtk_scrolled_window_new(NULL, NULL);
 
-  //gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbar), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
   //FIN SCROLLBAR
 
 
@@ -360,10 +364,12 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   widget_set_margins(createCompteButton, 0, 5, 0, 0);
   widget_set_margins(button_retour, 0, 5, 0, 0);
 
-  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 10);
-  //gtk_container_add(GTK_CONTAINER(scrollbar), viewTransaction);
-  //gtk_grid_attach(GTK_GRID(grid), scrollbar, 2, 0, 1, 10);
-  gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 10);
+  gtk_scrolled_window_set_min_content_height(GTK_SCROLLED_WINDOW(scrollbar), 100);
+
+  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 2);
+  gtk_container_add(GTK_CONTAINER(scrollbar), viewTransaction);
+  gtk_grid_attach(GTK_GRID(grid), scrollbar, 2, 0, 1, 2);
+  //gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 10);
   gtk_grid_attach(GTK_GRID(grid), createCompteButton, 1, 0, 1, 1);
   gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);
 

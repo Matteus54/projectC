@@ -126,7 +126,11 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 		day = malloc(sizeof(guint));
 		gtk_calendar_get_date(GTK_CALENDAR(date), year, month, day);
 
-		sprintf(date_text, "%d/%d/%d", *year, *month, *day);
+		(*month)++;
+		if (*month < 10)
+			sprintf(date_text, "%d/0%d/%d", *day, *month, *year);
+		else
+			sprintf(date_text, "%d/%d/%d", *day, *month, *year);
 
 	} else {
 		strcpy(date_text, gtk_label_get_text(GTK_LABEL(date)));
@@ -348,35 +352,59 @@ void valider_import_transaction(const char *iban, const char *line) {
 }
 
 void import_releve() {
-  FILE *releve;
+  FILE *relevef;
   char* filename = file_browser();
-  char line[1024];
-	char iban[34];
 
-  printf("path to selected releve : %s\n", filename);
+	if (filename != NULL) {
+	  char line[1024];
+		char iban[34];
 
-  releve = fopen(filename, "r");
+	  printf("path to selected releve : %s\n", filename);
 
-	fgets(iban, 34, releve);
+	  relevef = fopen(filename, "r");
 
-	int i =0;
-	while(iban[i] != '\0') {
-		if (iban[i] == '\n')
-		 	iban[i] = '\0';
-		i++;
+		fgets(iban, 34, relevef);
+
+		//on enleve le caracte de retour a la ligne du string
+		int i =0;
+		while(iban[i] != '\0') {
+			if (iban[i] == '\n')
+			 	iban[i] = '\0';
+			else
+				i++;
+		}
+
+		if (bdd_iban_exists(iban)) {
+			alert_dialog(window, "Merci de completer l'import avant de quitter le programme");
+
+			releve_t *releve = malloc(sizeof(releve_t));
+			strcpy(releve->compte, iban);
+			strcpy(releve->date_debut, "dd/mm/yyyy");
+			strcpy(releve->date_fin, "dd/mm/yyyy");
+
+		  fgets(line, 1024, relevef); //on saute la ligne des titres des colonnes
+		  while(fgets(line, 1024, relevef)) {
+
+				if (strcmp(releve->date_debut, "dd/mm/yyyy") == 0)
+					strcpy(releve->date_debut, getfield(line, 1));
+
+				valider_import_transaction(iban, line);
+		  }
+
+			strcpy(releve->date_fin, getfield(line, 1));
+
+			bdd_insert_releve(releve);
+
+			//destroy_releve(releve);
+			free(releve);
+
+		} else {
+			alert_dialog(window, "Aucun compte avec cet IBAN n'a ete trouve, veuillez le creer puis reessayer");
+		}
+
+	  fclose(relevef);
+	  g_free(filename);
 	}
-
-
-
-  fgets(line, 1024, releve); //on saute la ligne des titres des colonnes
-  while(fgets(line, 1024, releve)) {
-		valider_import_transaction(iban, line);
-  }
-
-
-
-  fclose(releve);
-  g_free(filename);
 }
 
 void transaction_window(GtkWidget *widget, gpointer* data) {

@@ -91,9 +91,12 @@ transaction_t** bdd_get_list_transaction (char *iban) {
         char *libelle = (char*) sqlite3_column_text(stmt, 3);
         double montant = (double) sqlite3_column_double(stmt, 4);
         char *negatif = (char*) sqlite3_column_text(stmt, 5);
+        /*
+        //inutile puisque la base de donnée peut stocker des valeurs negatives
         if(strcmp(negatif, "TRUE") == 0){
           montant = -montant;
         }
+        */
         double commission = sqlite3_column_double(stmt, 6);
         char *categorie = (char*) sqlite3_column_text(stmt, 7);
         char *commentaire = (char*) sqlite3_column_text(stmt, 8);
@@ -276,6 +279,34 @@ char** bdd_get_libelle_account() {
   return bdd_get_field_from_table("libelle", "compte");
 }
 
+int bdd_line_where_is_in_table(char *field, char *value, char *table) {
+  sqlite3_stmt *stmt;
+
+  char request[150];
+  sprintf(request, "SELECT * FROM %s WHERE %s = '%s'", table, field, value);
+
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      sqlite3_finalize(stmt);
+      return 1;
+    }
+    else {
+      sqlite3_finalize(stmt);
+      return 0;
+    }
+  }
+  else {
+      printf("SQL ERROR LOGIN\n");
+      sqlite3_finalize(stmt);
+      return 0;
+  }
+}
+
+int bdd_iban_exists(char *iban) {
+  return bdd_line_where_is_in_table("iban", iban, "compte");
+}
+
 int bdd_login(char* request) {
   sqlite3_stmt *stmt;
   if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
@@ -403,5 +434,10 @@ void bdd_init() {
           "CONSTRAINT transaction_type_fk FOREIGN KEY (type) REFERENCES typeTransaction(type_trans));";
   bdd_execute(request);
 
-
+  request = "CREATE TABLE IF NOT EXISTS releve ("\
+            "compte VARCHAR2(34) REFERENCES compte(iban),"\
+            "date_debut DATE,"\
+            "date_fin DATE,"\
+            "CONSTRAINT releve_pk PRIMARY KEY (compte, date_debut, date_fin));";
+  bdd_execute(request);
 }
