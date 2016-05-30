@@ -10,3 +10,4 @@ TODO
 - optimisation mémoire
 - ameliorer l'import de releve
 - reactive uniciter import releve (decommenter derniere ligne ds fct bdd_insert_releve)
+- enlever le booleen negatif dans la table transaction, et adapter le code en conscequence

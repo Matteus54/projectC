@@ -74,8 +74,34 @@ char* file_browser() {
       printf("path to selected file : %s\n", filename);
     }
 
+
   gtk_widget_destroy (dialog);
   return(filename);
+}
+
+void open_picture(char *filename) {
+  GtkWidget *windowPicture;
+  GtkWidget *grid;
+  GtkWidget *button_exit;
+  GtkWidget *picture;
+
+  windowPicture = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(windowPicture), "Graphique");
+  gtk_window_set_position(GTK_WINDOW(windowPicture), GTK_WIN_POS_CENTER);
+
+  grid = gtk_grid_new();
+  gtk_container_add(GTK_CONTAINER(windowPicture), grid);
+
+  picture = gtk_image_new_from_file(filename);
+
+  button_exit = gtk_button_new_with_label("Exit");
+  g_signal_connect(GTK_BUTTON(button_exit), "clicked", G_CALLBACK(close_window), windowPicture);
+
+  gtk_grid_attach(GTK_GRID(grid), picture, 0, 0, 5, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_exit, 4, 1, 1, 1);
+
+  gtk_widget_show_all(windowPicture);
+
 }
 
 void alert_dialog(GtkWidget *activeWindow, gchar *text) {

@@ -241,6 +241,8 @@ void check_stat(GtkWidget *widget, tree_selection_t *tree) {
         }
 
         system("cat mongraph.conf | gnuplot");
+
+        open_picture("mon_graphe.png");
       }
 
 
