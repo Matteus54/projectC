@@ -2,6 +2,7 @@
 #include "bdd.h"
 #include "bdd_updates.h"
 #include "transactions.h"
+#include "releve.h"
 
 void bdd_insert_categorie(char *categorie) {
   char request[300];

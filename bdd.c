@@ -5,6 +5,7 @@
 #include "compte.h"
 #include "transactions.h"
 #include "bdd_checks.h"
+#include "releve.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -58,10 +59,51 @@ int bdd_execute(char *sql) {
   }
 }
 
+releve_t** bdd_get_list_releve(char *iban) {
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char request[1024] = "SELECT * FROM releve WHERE compte = '";
+  strcat(request, iban);
+  strcat(request, "';");
+
+  releve_t **listReleve = (releve_t**) calloc(500, sizeof(releve_t*));
+
+  if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW && i < 500) {
+          releve_t* releve = malloc(sizeof(releve_t));
+
+          strcpy(releve->compte, (char *) sqlite3_column_text(stmt, 0));
+          strcpy(releve->date_debut, (char *) sqlite3_column_text(stmt, 1));
+          strcpy(releve->date_fin, (char *) sqlite3_column_text(stmt, 2));
+          releve->montant_initial = (double) sqlite3_column_double(stmt, 3);
+          releve->montant_final = (double) sqlite3_column_double(stmt, 4);
+
+          listReleve[i] = releve;
+          i++;
+
+          res_stmt = sqlite3_step(stmt);
+      }
+      sqlite3_finalize(stmt);
+      return listReleve;
+    }
+    else {
+      printf("Unable to get list of releve, or no one exists\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+  }
+  else {
+    printf("SQL ERROR GET TRANSACTIONS\n");
+    return NULL;
+  }
+}
+
 transaction_t** bdd_get_list_transaction (char *iban) {
   int i = 0;
   sqlite3_stmt *stmt;
-  char request[1024] = "SELECT * from transactionCompte WHERE compte_iban = '";
+  char request[1024] = "SELECT * FROM transactionCompte WHERE compte_iban = '";
   strcat(request, iban);
   strcat(request, "';");
 
@@ -377,7 +419,7 @@ void bdd_init() {
   request = "CREATE TABLE IF NOT EXISTS transactionCompte ("\
           "id_transaction INTEGER PRIMARY KEY AUTOINCREMENT,"\
           "compte_iban VARCHAR2(34) NOT NULL,"\
-          "date VARCHAR2(8) NOT NULL,"\
+          "date DATE NOT NULL,"\
           "libelle VARCHAR2(255) NOT NULL,"\
           "montant NUMBER(12,2) NOT NULL,"\
           "negatif BOOLEAN NOT NULL,"\
@@ -392,6 +434,8 @@ void bdd_init() {
             "compte VARCHAR2(34) REFERENCES compte(iban),"\
             "date_debut DATE,"\
             "date_fin DATE,"\
+            "montant_initial NUMBER(12,2),"\
+            "montant_final NUMBER(12,2),"
             "CONSTRAINT releve_pk PRIMARY KEY (compte, date_debut, date_fin));";
   bdd_execute(request);
 }

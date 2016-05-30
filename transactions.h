@@ -29,11 +29,6 @@ typedef struct {
   //char *devise;
 } transaction_t;
 
-typedef struct {
-  char compte[35];
-  char date_debut[11];
-  char date_fin[11];
-} releve_t;
 
 void transaction_window(GtkWidget *widget, gpointer* data);
 void show_transaction();

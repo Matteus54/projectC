@@ -8,6 +8,8 @@
 #include "compte.h"
 #include "bdd.h"
 #include "transactions.h"
+#include "statistique.h"
+
 
 
 GtkApplication *app;
@@ -112,7 +114,7 @@ void alert_dialog_then_close(GtkWidget *activeWindow, gchar *text) {
 void main_window() {
   clean_window();
 
-  GtkWidget *button_compte, *button_transaction, *button_exit;
+  GtkWidget *button_compte, *button_transaction, *button_statistique, *button_exit;
 
   //setting window
   gtk_window_set_title(GTK_WINDOW(window), "Welcome");
@@ -126,6 +128,11 @@ void main_window() {
   g_signal_connect(button_transaction, "clicked", G_CALLBACK(transaction_window), NULL);
 
   gtk_grid_attach(GTK_GRID(grid), button_transaction, 1,0,1,1);
+
+  button_statistique = gtk_button_new_with_label("Statistique");
+  g_signal_connect(button_statistique, "clicked", G_CALLBACK(statistique_window), NULL);
+
+  gtk_grid_attach(GTK_GRID(grid), button_statistique, 2, 0, 1, 1);
 
   button_exit = gtk_button_new_with_label("Exit");
   g_signal_connect(button_exit, "clicked", G_CALLBACK(close_window), window);
