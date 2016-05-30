@@ -375,7 +375,7 @@ void import_releve() {
 	  char line[1024];
 		char iban[35];
 
-	  printf("path to selected releve : %s\n", filename);
+	  //printf("path to selected releve : %s\n", filename);
 
 	  relevef = fopen(filename, "r");
 

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <math.h>
+#include <time.h>
 #include "compte.h"
 #include "alerts.h"
 #include "bdd.h"
@@ -11,8 +12,50 @@ extern GtkWidget *window;
 extern GtkWidget *grid;
 extern char login[30];
 
+char *get_date(char* minus) {
+  time_t now = time(NULL);
+  struct tm *t = localtime(&now);
+  char year[5], month[5], day[5];
+
+  if (strcmp(minus, "month") == 0) {
+    if (t->tm_mon == 0) {
+      sprintf(year, "%d", t->tm_year+1899);
+      strcpy(month, "12");
+    } else {
+      sprintf(year, "%d", t->tm_year+1899);
+      if (t->tm_mon < 10)
+        sprintf(month, "0%d", t->tm_mon);
+      else
+        sprintf(month, "%d", t->tm_mon);
+      sprintf(day, "%d", t->tm_mday);
+    }
+  } else if (strcmp(minus, "year") == 0) {
+    sprintf(year, "%d", t->tm_year+1899);
+    if (t->tm_mon+1 < 10)
+      sprintf(month, "0%d", t->tm_mon+1);
+    else
+      sprintf(month, "0%d", t->tm_mon+1);
+    sprintf(day, "%d", t->tm_mday);
+  } else {
+    sprintf(year, "%d", t->tm_year+1900);
+    if (t->tm_mon+1 < 10)
+      sprintf(month, "0%d", t->tm_mon+1);
+    else
+      sprintf(month, "%d", t->tm_mon+1);
+    sprintf(day, "%d", t->tm_mday);
+  }
+
+  char *date = malloc(sizeof(char)*9);
+
+  strcpy(date, year);
+  strcat(date, month);
+  strcat(date, day);
+
+  return date;
+}
+
 void check_alerts() {
-  printf("check_alerts\n");
+  //printf("check_alerts\n");
   account_t** listAccounts = bdd_get_list_account();
   if (listAccounts != NULL) {
     char alertText[1024];
@@ -22,7 +65,7 @@ void check_alerts() {
     alert_t** listAlerts = bdd_get_list_alerts();
 
     if (listAlerts != NULL) {
-      char *time_text;
+      char time_text[25];
       double result= 0;
       char inAccounts[1024];
       strcpy(inAccounts, "('");
@@ -36,21 +79,20 @@ void check_alerts() {
       strcat(inAccounts, "')");
 
       while (*listAlerts != NULL) {
-        printf("hello 0\n");
         strcpy(request, "");
 
+        strcpy(time_text, "");
         if (strcmp((*listAlerts)->type_temps, "monthly") == 0) {
-          //time_text = " AND date >= ADDMONTHS(SYSDATE, -1)";
-          time_text = "";
+          //strcpy(time_text, " AND date >= ");
+          sprintf(time_text, " AND date >= %s", get_date("month"));
+
+
         } else if (strcmp((*listAlerts)->type_temps, "yearly") == 0) {
-          //time_text = " AND date >= ADDMONTHS(SYSDATE, -12)";
-          time_text = "";
+          sprintf(time_text, " AND date >= %s", get_date("year"));
         } else if (strcmp((*listAlerts)->type_temps, "total") == 0) {
-          time_text = "";
         }
 
         if ( strcmp((*listAlerts)->type, "max_cat") == 0) {
-          printf("hello 11\n");
           sprintf(request, "SELECT SUM(T.montant) "\
           "FROM transactionCompte T "\
           "WHERE type = '%s' "\
@@ -61,29 +103,21 @@ void check_alerts() {
           "FROM compte "\
           "WHERE iban = '%s';", bdd_get_iban_from_libelle((*listAlerts)->compte_cat));
         }
-        printf("hello 2\n");
 
         result = bdd_get_sum(request);
 
         if (result != NAN) {
-          printf("%f | %f\n", result, (*listAlerts)->montant);
-
           //cette condition est à changer si on ajoute d'autre type d'alert
           if ((result > (*listAlerts)->montant && strcmp((*listAlerts)->type, "max_cat") == 0) ||\
              (result < (*listAlerts)->montant && strcmp((*listAlerts)->type, "min_account") == 0) ) {
-            printf("coucou\n");
             if (strcmp((*listAlerts)->type, "max_cat") == 0) {
               strcat(alertText, "La categorie ");
               strcat(alertText, (*listAlerts)->compte_cat);
               strcat(alertText, " depasse le montant alloue");
             } else if (strcmp((*listAlerts)->type, "min_account") == 0) {
-              printf("coucou\n");
               strcat(alertText, "Le compte ");
-              printf("coucou\n");
               strcat(alertText, (*listAlerts)->compte_cat);
-              printf("coucou\n");
               strcat(alertText, " est en dessous du seuil autorise");
-              printf("coucou\n");
             }
             if ( strcmp((*listAlerts)->type_temps, "monthly") == 0) {
               strcat(alertText, " pour le mois");

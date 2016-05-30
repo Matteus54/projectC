@@ -352,7 +352,7 @@ void show_compte (GtkWidget *widget, gpointer* data) {
   gtk_grid_attach(GTK_GRID(grid), createCompteButton, 1, 0, 1, 1);
   int i;
   gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);
-  for (i = 2; i<h-2; i++) {
+  for (i = 2; i<h; i++) {
     gtk_grid_attach(GTK_GRID(grid), gtk_label_new(" "), 1, i, 1, 1);
   }
 

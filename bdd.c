@@ -48,7 +48,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
 
 //Fonction qui permet dexecuter une requete SQL en parametre
 int bdd_execute(char *sql) {
-  printf("%s\n", sql);
+  //printf("%s\n", sql);
   rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
   if( rc != SQLITE_OK) {
     fprintf(stderr, "SQL ERROR: %s\n", zErrMsg);
@@ -355,7 +355,6 @@ int bdd_line_where_is_in_table(char *field, char *value, char *table) {
 }
 
 double bdd_get_sum(char *request) {
-  printf("%s\n", request);
   double result = NAN;
   sqlite3_stmt *stmt;
 
@@ -429,7 +428,6 @@ char* bdd_get_libelle_from_iban(char* iban) {
 }
 
 char* bdd_get_iban_from_libelle(char* libelle) {
-  printf("%s\n", libelle);
   char request[1024] = "SELECT iban FROM compte WHERE libelle = '";
   strcat(request, libelle);
   strcat(request, "';");
@@ -437,21 +435,11 @@ char* bdd_get_iban_from_libelle(char* libelle) {
   //iban = "";
   sqlite3_stmt *stmt;
 
-  printf("hello\n");
-
   if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
-    printf("hello\n");
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
       iban = (char*)sqlite3_column_text(stmt,0);
-      /*
-      printf("hello 0 %s\n", (char*)sqlite3_column_text(stmt,0));
-      char* text = (char*)sqlite3_column_text(stmt,0);
-      printf("%s\n", text);
-      strcpy(iban, text);
-      */
     }
-    printf("hello 1\n");
     sqlite3_finalize(stmt);
     return iban;
   } else {

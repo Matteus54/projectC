@@ -138,11 +138,15 @@ void releve_statistique_window(GtkWidget *widget, gpointer *data) {
   widget_set_margins(button_retour, 0, 5, 0, 0);
   g_signal_connect(button_retour, "clicked", G_CALLBACK(statistique_window), NULL);
 
+  int h = 30;
+  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, h);
+  gtk_grid_attach(GTK_GRID(grid), viewReleve, 2, 0, 1, h);
+  gtk_grid_attach(GTK_GRID(grid), button_check_stat, 1, 0, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);
 
-  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 2);
-  gtk_grid_attach(GTK_GRID(grid), viewReleve, 1, 0, 1, 2);
-  gtk_grid_attach(GTK_GRID(grid), button_check_stat, 0, 50, 1, 1);
-  gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 50, 1, 1);
+  int i;
+  for (i = 2; i<h; i++)
+    gtk_grid_attach(GTK_GRID(grid), gtk_label_new(" "), 1, i, 2, 1);
 
   gtk_widget_show_all(window);
 }
@@ -162,12 +166,14 @@ void tree_select_releve(GtkTreeSelection *selection, gpointer data) {
     if(listReleve != NULL) {
       while(*listReleve != NULL) {
         gtk_list_store_insert_with_values(modelReleve, NULL, -1,
-                            0, (*listReleve)->compte,
                             1, (*listReleve)->date_debut,
+                            0, (*listReleve)->compte,
                             2, (*listReleve)->date_fin,
                             3, (*listReleve)->montant_initial,
                             4, (*listReleve)->montant_final,
                             -1);
+
+        printf("%s\n", (*listReleve)->compte);
         listReleve++;
       }
     }
@@ -190,7 +196,6 @@ void check_stat(GtkWidget *widget, tree_selection_t *tree) {
   char *date_fin_releve;
   if(gtk_tree_selection_get_selected(selectAccount, &modelAccount, &iterAccount)) {
     gtk_tree_model_get(modelAccount, &iterAccount, 0, &iban, -1);
-
     if(gtk_tree_selection_get_selected(selectReleve, &modelReleve, &iterReleve)) {
       gtk_tree_model_get(modelReleve, &iterReleve, 1, &date_debut_releve, -1);
       gtk_tree_model_get(modelReleve, &iterReleve, 2, &date_fin_releve, -1);
@@ -226,12 +231,18 @@ void check_stat(GtkWidget *widget, tree_selection_t *tree) {
         else {
           int j;
           for(j = 0; j < i; j++) {
-            fprintf(fptr, "%s %f\n", xvals[j], yvals[j]);
+            if (xvals[j] != NULL) {
+              printf("%f\n", yvals[j]);
+              printf("%s\n", xvals[j]);
+              fprintf(fptr, "%s %f\n", xvals[j], yvals[j]);
+            }
           }
           fclose(fptr);
         }
 
         system("cat mongraph.conf | gnuplot");
+
+        //open_picture("mon_graphe.png");
       }
 
 

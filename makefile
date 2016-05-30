@@ -1,7 +1,7 @@
 CC = gcc
 
-SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c bdd_checks.c bdd_updates.c alerts.c statistique.c
-OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o bdd_checks.o bdd_updates.o alerts.o statistique.o
+SRC = main.c bdd.c gui.c create_user.c login.c compte.c transactions.c statistique.c bdd_checks.c bdd_updates.c alerts.c
+OBJ = main.o bdd.o gui.o create_user.o login.o compte.o transactions.o statistique.o bdd_checks.o bdd_updates.o alerts.o
 
 TEST_SRC = test.c
 TEST_OBJ = test.o
