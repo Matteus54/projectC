@@ -5,6 +5,7 @@
 #include "create_user.h"
 #include "login.h"
 #include "bdd.h"
+#include "alerts.h"
 
 extern GtkApplication *app;
 extern GtkWidget *window;
@@ -34,6 +35,7 @@ void try_login(GtkWidget* widget, gpointer* data) {
   strcat(request, "';");
   if(bdd_login(request)) {
     // passe a la page principal si le login est valide
+    check_alerts();
     main_window();
   }
   else {
