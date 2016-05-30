@@ -7,11 +7,26 @@
 #include "bdd.h"
 #include "bdd_updates.h"
 #include "transactions.h"
-#include "import_releve_from_csv.h"
 
 extern GtkWidget *app;
 extern GtkWidget *window;
 extern GtkWidget *grid;
+
+int get_number_lines(char *filename) {
+  FILE *fp = fopen(filename, "r");
+  int lines = 0;
+  char ch;
+  while(!feof(fp))
+  {
+    ch = fgetc(fp);
+    if(ch == '\n')
+    {
+      lines++;
+    }
+  }
+  fclose(fp);
+  return lines;
+}
 
 const char* getfield(const char* line, int num) // a reecrire (copier coller d'internet)
 {
@@ -164,6 +179,7 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 							alert_dialog_then_close(window, "Transaction successfully added to account");
 						} else {
 							alert_dialog(window, "Transaction successfully added to account");
+							check_alerts();
 						}
 						free(transaction);
 					};
@@ -359,7 +375,7 @@ void import_releve() {
 	  char line[1024];
 		char iban[35];
 
-	  printf("path to selected releve : %s\n", filename);
+	  //printf("path to selected releve : %s\n", filename);
 
 	  relevef = fopen(filename, "r");
 
@@ -375,27 +391,38 @@ void import_releve() {
 		}
 
 		if (bdd_iban_exists(iban)) {
-			alert_dialog(window, "Merci de completer l'import avant de quitter le programme");
 
 			releve_t *releve = malloc(sizeof(releve_t));
 			strcpy(releve->compte, iban);
 			strcpy(releve->date_debut, "dd/mm/yyyy");
 			strcpy(releve->date_fin, "dd/mm/yyyy");
 
+			int n = get_number_lines(filename) - 2;
+
+			char lines[n][1024];
+
 		  fgets(line, 1024, relevef); //on saute la ligne des titres des colonnes
+			int i = 0;
 		  while(fgets(line, 1024, relevef)) {
 
 				if (strcmp(releve->date_debut, "dd/mm/yyyy") == 0)
 					strcpy(releve->date_debut, getfield(line, 1));
 
-				valider_import_transaction(iban, line);
+				strcpy(lines[i], line);
+				i++;
 		  }
+
 
 			strcpy(releve->date_fin, getfield(line, 1));
 
-			bdd_insert_releve(releve);
+			if (bdd_insert_releve(releve)) {
+				for (i=0; i<n; i++) {
+					valider_import_transaction(iban, lines[i]);
+				}
+			} else {
+				alert_dialog(window, "Le releve a deja ete importe");
+			}
 
-			//destroy_releve(releve);
 			free(releve);
 
 		} else {

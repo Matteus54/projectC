@@ -4,6 +4,7 @@ DONE
 
 TODO
 - possibilité de choisir des filtres pour afficher les transactions
+- alerte
 - plot transaction par mois
 - ajouter les relevé dans une table avec le compte la date de la 1er et derniere transaction
 - optimisation mémoire
