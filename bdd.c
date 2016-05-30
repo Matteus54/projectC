@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include <string.h>
+#include <math.h>
 #include "compte.h"
 #include "transactions.h"
 #include "bdd_checks.h"
 #include "releve.h"
+#include "alerts.h"
 
 #define UNUSED(p) ((void)(p))
 
@@ -46,7 +48,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName){
 
 //Fonction qui permet dexecuter une requete SQL en parametre
 int bdd_execute(char *sql) {
-  //printf("%s\n", sql);
+  printf("%s\n", sql);
   rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
   if( rc != SQLITE_OK) {
     fprintf(stderr, "SQL ERROR: %s\n", zErrMsg);
@@ -237,6 +239,50 @@ account_t** bdd_get_list_account() {
   }
 }
 
+alert_t** bdd_get_list_alerts() {
+  int i = 0;
+  sqlite3_stmt *stmt;
+  char request[1024] = "SELECT * FROM alerts WHERE proprietaire = '";
+  strcat(request, login);
+  strcat(request, "';");
+
+  alert_t **listAlerts = (alert_t**) calloc(100, sizeof(alert_t*));
+
+  if(sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      while(res_stmt == SQLITE_ROW && i<100) {
+        alert_t* alert = (alert_t*) malloc(sizeof(alert_t));
+
+        alert->id = (int) sqlite3_column_int(stmt, 0);
+        strcpy(alert->type, (char*) sqlite3_column_text(stmt, 2));
+        strcpy(alert->type_temps, (char*) sqlite3_column_text(stmt, 3));
+        strcpy(alert->compte_cat, (char*) sqlite3_column_text(stmt, 4));
+        alert->montant = sqlite3_column_double(stmt, 5);
+
+        listAlerts[i] = alert;
+        i++;
+
+        res_stmt = sqlite3_step(stmt);
+      }
+      sqlite3_finalize(stmt);
+      return listAlerts;
+    }
+    else {
+      printf("Unable to get list of alerts\n");
+      sqlite3_finalize(stmt);
+      return NULL;
+    }
+    free(listAlerts);
+    free(request);
+  }
+  else {
+    printf("SQL ERROR GET ALERTS\n");
+    return NULL;
+  }
+}
+
+
 char** bdd_get_field_from_table(char *field, char *table) {
   char **listText = (char **) calloc (30,sizeof(char*));
   char *text;
@@ -308,6 +354,29 @@ int bdd_line_where_is_in_table(char *field, char *value, char *table) {
   }
 }
 
+double bdd_get_sum(char *request) {
+  printf("%s\n", request);
+  double result = NAN;
+  sqlite3_stmt *stmt;
+
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      result = sqlite3_column_double(stmt, 0);
+      return result;
+    }
+    else {
+      printf("Unable to get sum\n");
+      sqlite3_finalize(stmt);
+      return NAN;
+    }
+  }
+  else {
+      printf("SQL ERROR LOGIN\n");
+      return NAN;
+  }
+}
+
 int bdd_iban_exists(char *iban) {
   return bdd_line_where_is_in_table("iban", iban, "compte");
 }
@@ -335,19 +404,54 @@ int bdd_login(char* request) {
   }
 }
 
-char* bdd_get_iban_from_libelle(char* libelle) {
-  char request[1024] = "SELECT iban FROM compte WHERE libelle = '";
-  strcat(request, libelle);
+char* bdd_get_libelle_from_iban(char* iban) {
+  char request[1024] = "SELECT iban FROM compte WHERE iban = '";
+  strcat(request, iban);
   strcat(request, "';");
-  char *iban = malloc(sizeof(char)*34);
+  char *libelle = malloc(sizeof(char)*256);
   sqlite3_stmt *stmt;
 
   if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
     int res_stmt = sqlite3_step(stmt);
     if(res_stmt == SQLITE_ROW) {
       char* text = (char*)sqlite3_column_text(stmt,0);
-      memcpy(iban, text, strlen(text));
+      memcpy(libelle, text, strlen(text));
     }
+    sqlite3_finalize(stmt);
+    return libelle;
+  } else {
+    printf("SQL ERROR GET LIBELLE FROM IBAN\n");
+    sqlite3_finalize(stmt);
+    return NULL;
+  }
+  //free(iban);
+  free(request);
+}
+
+char* bdd_get_iban_from_libelle(char* libelle) {
+  printf("%s\n", libelle);
+  char request[1024] = "SELECT iban FROM compte WHERE libelle = '";
+  strcat(request, libelle);
+  strcat(request, "';");
+  char *iban = malloc(sizeof(char)*35);
+  //iban = "";
+  sqlite3_stmt *stmt;
+
+  printf("hello\n");
+
+  if (sqlite3_prepare_v2(db, request, -1, &stmt, 0) == SQLITE_OK) {
+    printf("hello\n");
+    int res_stmt = sqlite3_step(stmt);
+    if(res_stmt == SQLITE_ROW) {
+      iban = (char*)sqlite3_column_text(stmt,0);
+      /*
+      printf("hello 0 %s\n", (char*)sqlite3_column_text(stmt,0));
+      char* text = (char*)sqlite3_column_text(stmt,0);
+      printf("%s\n", text);
+      strcpy(iban, text);
+      */
+    }
+    printf("hello 1\n");
     sqlite3_finalize(stmt);
     return iban;
   } else {
@@ -355,7 +459,7 @@ char* bdd_get_iban_from_libelle(char* libelle) {
     sqlite3_finalize(stmt);
     return NULL;
   }
-  free(iban);
+  //free(iban);
   free(request);
 }
 
@@ -383,7 +487,7 @@ void bdd_init() {
   bdd_execute(request);
 
   request = "CREATE TABLE IF NOT EXISTS compte ("\
-            "iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 34),"\
+            "iban VARCHAR2(34) PRIMARY KEY CHECK (length(iban) >= 14 AND length(iban) <= 35),"\
             "solde NUMBER(12,2) NOT NULL,"\
             "libelle VARCHAR2(255) UNIQUE,"\
             "booleanLivret BOOLEAN NOT NULL,"\
@@ -446,5 +550,14 @@ void bdd_init() {
             "montant_initial NUMBER(12,2),"\
             "montant_final NUMBER(12,2),"
             "CONSTRAINT releve_pk PRIMARY KEY (compte, date_debut, date_fin));";
+  bdd_execute(request);
+
+  request = "CREATE TABLE IF NOT EXISTS alerts ("\
+            "id_alert INTEGER PRIMARY KEY AUTOINCREMENT,"\
+            "proprietaire VARCHAR2(30) NOT NULL,"\
+            "type VARCHAR2(34) NOT NULL,"\
+            "type_temps VARCHAR2(34) NOT NULL,"\
+            "compte_cat VARCHAR2(34) REFERENCES compte(iban),"\
+            "montant NUMBER(12,2));";
   bdd_execute(request);
 }

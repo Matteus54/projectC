@@ -31,7 +31,7 @@ void create_account(GtkWidget *widget, gpointer* data) {
   const char *solde_text = gtk_entry_get_text(GTK_ENTRY(solde));
 
 
-  if(strlen(iban_text) >= 14 && strlen(iban_text) <= 34) {              // TEST SI IBAN CORRECT
+  if(strlen(iban_text) >= 14 && strlen(iban_text) <= 35) {              // TEST SI IBAN CORRECT
     if(isNumeric(solde_text, 1)) {                                      // TEST SI SOLDE EST BIEN NUMERIC
       if(strlen(libelle_text) <= 255) {                                 // TEST SI LIBELLE ENTRE 0 ET 255
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(livret))){    // TEST SI BUTTON CHECK
@@ -119,7 +119,7 @@ void create_account(GtkWidget *widget, gpointer* data) {
     }
   }
   else {
-    alert_dialog(window, "Error: IBAN must be between 14 and 34");
+    alert_dialog(window, "Error: IBAN must be between 14 and 35");
   }
 }
 
@@ -343,12 +343,18 @@ void show_compte (GtkWidget *widget, gpointer* data) {
 
   gtk_scrolled_window_set_min_content_height(GTK_SCROLLED_WINDOW(scrollbar), 100);
 
-  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 2);
+
+  int h = 30;
+  gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, h);
   gtk_container_add(GTK_CONTAINER(scrollbar), viewTransaction);
-  gtk_grid_attach(GTK_GRID(grid), scrollbar, 2, 0, 1, 2);
+  gtk_grid_attach(GTK_GRID(grid), scrollbar, 2, 0, 1, h);
   //gtk_grid_attach(GTK_GRID(grid), viewTransaction, 2, 0, 1, 10);
   gtk_grid_attach(GTK_GRID(grid), createCompteButton, 1, 0, 1, 1);
+  int i;
   gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 1, 1, 1);
+  for (i = 2; i<h-2; i++) {
+    gtk_grid_attach(GTK_GRID(grid), gtk_label_new(" "), 1, i, 1, 1);
+  }
 
   //ICI ON RECUPERE LES DONNEES DE TOUS LES COMPTES EXISTANT A UN MEC
 

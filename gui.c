@@ -9,7 +9,7 @@
 #include "bdd.h"
 #include "transactions.h"
 #include "statistique.h"
-
+#include "alerts.h"
 
 
 GtkApplication *app;
@@ -112,9 +112,10 @@ void alert_dialog_then_close(GtkWidget *activeWindow, gchar *text) {
 }
 
 void main_window() {
+  //printf("main window\n");
   clean_window();
 
-  GtkWidget *button_compte, *button_transaction, *button_statistique, *button_exit;
+  GtkWidget *button_compte, *button_transaction, *button_statistique, *button_alert, *button_exit;
 
   //setting window
   gtk_window_set_title(GTK_WINDOW(window), "Welcome");
@@ -134,6 +135,11 @@ void main_window() {
 
   gtk_grid_attach(GTK_GRID(grid), button_statistique, 2, 0, 1, 1);
 
+  button_alert = gtk_button_new_with_label("Alert");
+  g_signal_connect(button_alert, "clicked", G_CALLBACK(alert_window), NULL);
+
+  gtk_grid_attach(GTK_GRID(grid), button_alert, 3,0,1,1);
+
   button_exit = gtk_button_new_with_label("Exit");
   g_signal_connect(button_exit, "clicked", G_CALLBACK(close_window), window);
 
@@ -143,6 +149,7 @@ void main_window() {
 }
 
 void main_handler(GtkApplication *app) {
+  //printf("main handler\n");
   /* Definition et personnalisation de la fenetre */
   window = gtk_application_window_new(app);
   gtk_window_set_default_size(GTK_WINDOW(window), 640,480);
@@ -161,6 +168,7 @@ void main_handler(GtkApplication *app) {
   Elle appelle ensuite la fonction "login_page" en premier
 */
 int gui_init(int argc, char **argv) {
+  //printf("init\n");
   /* Initialisation de GTK+ */
   gtk_init(&argc, &argv);
 
