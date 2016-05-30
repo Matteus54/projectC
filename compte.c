@@ -134,7 +134,7 @@ void tree_selection(GtkTreeSelection *selection, gpointer data) {
 
       gtk_list_store_clear(modelTransaction);
 
-      transaction_t **listTransaction = bdd_get_list_transaction(iban);
+      transaction_t **listTransaction = bdd_get_list_transaction(iban, NULL, NULL);
       if(listTransaction != NULL) {
         while(*listTransaction != NULL) {
           gtk_list_store_insert_with_values(modelTransaction, NULL, -1,

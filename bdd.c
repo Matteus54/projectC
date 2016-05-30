@@ -100,12 +100,21 @@ releve_t** bdd_get_list_releve(char *iban) {
   }
 }
 
-transaction_t** bdd_get_list_transaction (char *iban) {
+transaction_t** bdd_get_list_transaction (char *iban, char *date_debut, char *date_fin) {
   int i = 0;
   sqlite3_stmt *stmt;
   char request[1024] = "SELECT * FROM transactionCompte WHERE compte_iban = '";
   strcat(request, iban);
-  strcat(request, "';");
+  if((date_debut != NULL) && (date_fin != NULL)) {
+    strcat(request, "' AND date >= ");
+    strcat(request, date_debut);
+    strcat(request, " AND date <= ");
+    strcat(request, date_fin);
+    strcat(request, ";");
+  }
+  else {
+    strcat(request, "';");
+  }
 
   transaction_t **listTransaction = (transaction_t**) calloc(500, sizeof(transaction_t*));
 
@@ -432,8 +441,8 @@ void bdd_init() {
 
   request = "CREATE TABLE IF NOT EXISTS releve ("\
             "compte VARCHAR2(34) REFERENCES compte(iban),"\
-            "date_debut DATE,"\
-            "date_fin DATE,"\
+            "date_debut VARCHAR2(8),"\
+            "date_fin VARCHAR2(8),"\
             "montant_initial NUMBER(12,2),"\
             "montant_final NUMBER(12,2),"
             "CONSTRAINT releve_pk PRIMARY KEY (compte, date_debut, date_fin));";

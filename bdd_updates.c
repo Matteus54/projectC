@@ -56,12 +56,12 @@ int bdd_apply_transaction(transaction_t *transaction) {
 
 
 void bdd_insert_releve(releve_t *releve) {
-  char request[255] = "INSERT INTO releve VALUES ('";
+  char request[255] = "INSERT INTO releve (compte, date_debut, date_fin) VALUES ('";
   strcat(request, releve->compte);
   strcat(request, "','");
   strcat(request, releve->date_debut);
   strcat(request, "','");
   strcat(request, releve->date_fin);
   strcat(request, "');");
-  //bdd_execute(request);
+  bdd_execute(request);
 }

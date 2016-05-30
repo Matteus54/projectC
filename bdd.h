@@ -11,7 +11,7 @@ int callback(void *NotUsed, int argc, char **argv, char **azColName);
 int bdd_execute(char *sql);
 
 releve_t** bdd_get_list_releve(char *iban);
-transaction_t** bdd_get_list_transaction (char *iban);
+transaction_t** bdd_get_list_transaction (char *iban, char *date_debut, char *date_fin);
 livret_t** bdd_get_list_livret();
 account_t** bdd_get_list_account();
 

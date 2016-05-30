@@ -115,7 +115,24 @@ void releve_statistique_window(GtkWidget *widget, gpointer *data) {
   column = gtk_tree_view_column_new_with_attributes("montant final", gtk_cell_renderer_text_new(), "text", 4, NULL);
   gtk_tree_view_append_column(GTK_TREE_VIEW(viewReleve), column);
 
-  GtkWidget *button_retour;
+  GtkWidget *button_retour, *button_check_stat;
+
+  GtkTreeSelection*  selectAccount;
+  GtkTreeSelection*  selectReleve;
+
+  selectAccount = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
+  gtk_tree_selection_set_mode(selectAccount, GTK_SELECTION_SINGLE);
+
+  selectReleve = gtk_tree_view_get_selection(GTK_TREE_VIEW(viewReleve));
+  gtk_tree_selection_set_mode(selectReleve, GTK_SELECTION_SINGLE);
+
+  tree_selection_t* tree = malloc(sizeof(tree_selection_t));
+  tree->account = selectAccount;
+  tree->releve = selectReleve;
+
+  button_check_stat = gtk_button_new_with_label("Checks stat");
+  widget_set_margins(button_check_stat, 0, 5, 0, 0);
+  g_signal_connect(button_check_stat, "clicked", G_CALLBACK(check_stat), tree);
 
   button_retour = gtk_button_new_with_label("Retour");
   widget_set_margins(button_retour, 0, 5, 0, 0);
@@ -124,7 +141,8 @@ void releve_statistique_window(GtkWidget *widget, gpointer *data) {
 
   gtk_grid_attach(GTK_GRID(grid), view, 0, 0, 1, 2);
   gtk_grid_attach(GTK_GRID(grid), viewReleve, 1, 0, 1, 2);
-  gtk_grid_attach(GTK_GRID(grid), button_retour, 0, 1, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_check_stat, 0, 50, 1, 1);
+  gtk_grid_attach(GTK_GRID(grid), button_retour, 1, 50, 1, 1);
 
   gtk_widget_show_all(window);
 }
@@ -154,4 +172,70 @@ void tree_select_releve(GtkTreeSelection *selection, gpointer data) {
       }
     }
   }
+}
+
+void check_stat(GtkWidget *widget, tree_selection_t *tree) {
+  UNUSED(widget);
+
+  GtkTreeSelection *selectAccount = tree->account;
+  GtkTreeIter iterAccount;
+  GtkTreeModel *modelAccount;
+
+  GtkTreeSelection *selectReleve = tree->releve;
+  GtkTreeIter iterReleve;
+  GtkTreeModel *modelReleve;
+
+  char *iban;
+  char *date_debut_releve;
+  char *date_fin_releve;
+  if(gtk_tree_selection_get_selected(selectAccount, &modelAccount, &iterAccount)) {
+    gtk_tree_model_get(modelAccount, &iterAccount, 0, &iban, -1);
+
+    if(gtk_tree_selection_get_selected(selectReleve, &modelReleve, &iterReleve)) {
+      gtk_tree_model_get(modelReleve, &iterReleve, 1, &date_debut_releve, -1);
+      gtk_tree_model_get(modelReleve, &iterReleve, 2, &date_fin_releve, -1);
+
+      transaction_t** listTransaction = bdd_get_list_transaction(iban, date_debut_releve, date_fin_releve);
+      char *xvals[1000];
+      double yvals[1000];
+      int i = 0;
+      int k = 0;
+      if(listTransaction != NULL) {
+        while(listTransaction[i] != NULL) {
+          int j;
+          int trouve = 0;
+          for(j = 0; j < k; j++) {
+            if(strcmp(xvals[j], listTransaction[i]->date) == 0) {
+              yvals[j] += listTransaction[i]->montant;
+              trouve = 1;
+            }
+          }
+          if(!trouve) {
+            xvals[k] = listTransaction[i]->date;
+            yvals[k] = listTransaction[i]->montant;
+            k++;
+          }
+          i++;
+        }
+
+        FILE *fptr;
+        fptr = fopen("data.txt", "w");
+        if(fptr == NULL) {
+          fprintf(stderr, "Can't create data.txt\n");
+        }
+        else {
+          int j;
+          for(j = 0; j < i; j++) {
+            fprintf(fptr, "%s %f\n", xvals[j], yvals[j]);
+          }
+          fclose(fptr);
+        }
+
+        system("cat mongraph.conf | gnuplot");
+      }
+
+
+    }
+  }
+
 }
