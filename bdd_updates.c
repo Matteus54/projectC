@@ -41,8 +41,8 @@ void bdd_insert_transaction (transaction_t *transaction) {
 }
 
 
-void bdd_apply_transaction(transaction_t *transaction) {
-  char buffer[34];
+int bdd_apply_transaction(transaction_t *transaction) {
+  char buffer[35];
   char request[1024] = "UPDATE compte SET solde = (solde + CAST('";
   sprintf(buffer, "%f", transaction->montant);
   strcat(request, buffer);
@@ -51,7 +51,7 @@ void bdd_apply_transaction(transaction_t *transaction) {
   strcat(request, transaction->compte);
   strcat(request, "';");
 
-  bdd_execute(request);
+  return bdd_execute(request);
 }
 
 
