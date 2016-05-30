@@ -83,22 +83,20 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 
 	GtkWidget *window = GTK_WIDGET(transaction_entry->window);
 
+	transaction_t* transaction = calloc(1, sizeof(transaction_t));
 
-	char iban[34] = "";
 	if (GTK_IS_LABEL(compte)) {
-		strcat(iban, (char*)gtk_label_get_text(GTK_LABEL(compte)));
+		strcat(transaction->compte, (char*)gtk_label_get_text(GTK_LABEL(compte)));
 	} else {
 		char *compte_text;
 		compte_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(compte));
-		strcat(iban, (char*)bdd_get_iban_from_libelle(compte_text));
+		strcat(transaction->compte, (char*)bdd_get_iban_from_libelle(compte_text));
 	}
 
-
-	const char *libelle_text;
 	if (GTK_IS_ENTRY(libelle)) {
-  	libelle_text = gtk_entry_get_text(GTK_ENTRY(libelle));
+  	strcpy(transaction->libelle, gtk_entry_get_text(GTK_ENTRY(libelle)));
 	} else {
-		libelle_text = gtk_label_get_text(GTK_LABEL(libelle));
+		strcpy(transaction->libelle, gtk_label_get_text(GTK_LABEL(libelle)));
 	}
 
 	const char *montant_text;
@@ -107,6 +105,7 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 	} else {
 		montant_text = gtk_label_get_text(GTK_LABEL(montant));
 	}
+	transaction->montant = atof(montant_text);
 
 	const char *commission_text;
 	if(GTK_IS_ENTRY(commission)) {
@@ -114,11 +113,11 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 	} else {
 		commission_text = gtk_label_get_text(GTK_LABEL(commission));
 	}
+	transaction->commission = atof(commission_text);
 
-	const char *categorie_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(categorie));
-	const char *commentaire_text = gtk_entry_get_text(GTK_ENTRY(commentaire));
+	strcpy(transaction->categorie, gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(categorie)));
+	strcpy(transaction->commentaire, gtk_entry_get_text(GTK_ENTRY(commentaire)));
 
-	char *date_text = malloc(sizeof(char)*10);
 	if (GTK_IS_CALENDAR(date)) {
 		guint *year, *month, *day;
 		year = malloc(sizeof(guint));
@@ -128,26 +127,26 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 
 		(*month)++;
 		if (*month < 10)
-			sprintf(date_text, "%d/0%d/%d", *day, *month, *year);
+			sprintf(transaction->date, "%d0%d%d", *year, *month, *day);
 		else
-			sprintf(date_text, "%d/%d/%d", *day, *month, *year);
+			sprintf(transaction->date, "%d%d%d", *year, *month, *day);
 
 	} else {
-		strcpy(date_text, gtk_label_get_text(GTK_LABEL(date)));
+		strcpy(transaction->date, gtk_label_get_text(GTK_LABEL(date)));
 	}
 
-	if(strlen(libelle_text) <= 255) {
+	if(strlen(transaction->libelle) <= 255) {
 		if(isNumeric(montant_text, 1)) {
 			if(isNumeric(commission_text, 1)) {
-				if(strlen(commentaire_text) <= 255) {
+				if(strlen(transaction->commentaire) <= 255) {
 					char request[1024] = "INSERT INTO transactionCompte "\
 				  "(compte_iban, date, libelle, montant, negatif, commission, type, commentaire) "\
 				  "VALUES('";
-				  strcat(request, iban);
+				  strcat(request, transaction->compte);
 				  strcat(request, "', '");
-				  strcat(request, date_text);
+				  strcat(request, transaction->date);
 				  strcat(request, "', '");
-				  strcat(request, libelle_text);
+				  strcat(request, transaction->libelle);
 				  strcat(request, "', '");
 					strcat(request,	montant_text);
 				  strcat(request, "', ");
@@ -155,17 +154,18 @@ void create_transaction(GtkWidget *widget, transaction_entry_creation_t *entries
 				  strcat(request, ", '");
 					strcat(request, commission_text);
 				  strcat(request, "', '");
-				  strcat(request, categorie_text);
+				  strcat(request, transaction->categorie);
 				  strcat(request, "', '");
-				  strcat(request, commentaire_text);
+				  strcat(request, transaction->commentaire);
 				  strcat(request, "');");
 
-				  if (bdd_execute(request)) {
+				  if (bdd_execute(request) && bdd_apply_transaction(transaction)) {
 						if (GTK_IS_LABEL(compte)) {
 							alert_dialog_then_close(window, "Transaction successfully added to account");
 						} else {
 							alert_dialog(window, "Transaction successfully added to account");
 						}
+						free(transaction);
 					};
 				}
 				else {
@@ -357,13 +357,13 @@ void import_releve() {
 
 	if (filename != NULL) {
 	  char line[1024];
-		char iban[34];
+		char iban[35];
 
 	  printf("path to selected releve : %s\n", filename);
 
 	  relevef = fopen(filename, "r");
 
-		fgets(iban, 34, relevef);
+		fgets(iban, 35, relevef);
 
 		//on enleve le caracte de retour a la ligne du string
 		int i =0;
